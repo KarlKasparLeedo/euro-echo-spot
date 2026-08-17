@@ -13,9 +13,6 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
-import { SurplusCard } from "@/components/SurplusCard";
-import { SavingsAccountCard } from "@/components/SavingsAccountCard";
-import { MonthCloseCard } from "@/components/MonthCloseCard";
 
 export const Route = createFileRoute("/_authenticated/goals")({
   head: () => ({
@@ -92,7 +89,7 @@ function GoalsPage() {
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">Säästueesmärgid</h1>
         <p className="text-sm text-muted-foreground">
-          Nt &quot;Reis: 500 € kuni juuni&quot;. Saad eesmärgi siduda säästukategooriaga.
+          Nt &quot;Reis: 500 € kuni juuni&quot;. Raha suunamine käib kogumiskonto lehelt.
         </p>
       </div>
 
