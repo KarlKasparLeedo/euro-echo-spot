@@ -12,4 +12,26 @@ export default defineConfig({
     // nitro/vite builds from this
     server: { entry: "server" },
   },
+  vite: {
+    // Pre-bundle deps that are only reachable from client-only (ssr: false) routes.
+    // Without this, Vite discovers them mid-session and re-optimizes, which can leave
+    // the page holding two React copies -> "resolveDispatcher().useRef of null".
+    optimizeDeps: {
+      include: [
+        "react",
+        "react-dom",
+        "react-dom/client",
+        "recharts",
+        "sonner",
+        "@radix-ui/react-dialog",
+        "@radix-ui/react-select",
+        "@radix-ui/react-tabs",
+        "@radix-ui/react-label",
+        "@radix-ui/react-progress",
+        "@radix-ui/react-slot",
+        "lucide-react",
+      ],
+    },
+  },
 });
+
