@@ -342,6 +342,13 @@ export type Database = {
     Functions: {
       current_household_id: { Args: never; Returns: string }
       is_household_member: { Args: { _user_id: string }; Returns: boolean }
+      join_household_by_code: {
+        Args: { _code: string }
+        Returns: {
+          id: string
+          name: string
+        }[]
+      }
     }
     Enums: {
       txn_type: "expense" | "income"

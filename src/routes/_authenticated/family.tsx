@@ -7,6 +7,7 @@ import { availableMonths, fetchTransactions, monthKey, monthLabel } from "@/lib/
 import { formatEur } from "@/lib/categories";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
+import { HouseholdCard } from "@/components/HouseholdCard";
 import {
   Select,
   SelectContent,
@@ -36,7 +37,7 @@ export const Route = createFileRoute("/_authenticated/family")({
 function FamilyPage() {
   const [key, setKey] = useState(monthKey(new Date()));
   const { data: txns } = useQuery({ queryKey: ["transactions"], queryFn: fetchTransactions });
-  const { data, isLoading } = useQuery({
+  const { data } = useQuery({
     queryKey: ["family", key],
     queryFn: () => fetchFamilyOverview(key),
   });
@@ -67,26 +68,14 @@ function FamilyPage() {
         </Select>
       </div>
 
-      {!isLoading && !data?.household && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-base">
-              <Users className="h-4 w-4 text-primary" /> Sa ei kuulu veel peresse
-            </CardTitle>
-            <CardDescription>
-              Loo pere või liitu kutsekoodiga seadete lehel, siis saate jagatud eelarveid ja eesmärke
-              koos jälgida.
-            </CardDescription>
-          </CardHeader>
-        </Card>
-      )}
+      <HouseholdCard />
 
       {data?.household && (
         <>
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="flex items-center gap-2 text-base">
-                <Users className="h-4 w-4 text-primary" /> {data.household.name}
+                <Users className="h-4 w-4 text-primary" /> Liikmed
               </CardTitle>
             </CardHeader>
             <CardContent className="flex flex-wrap gap-2 text-sm text-muted-foreground">
@@ -98,6 +87,8 @@ function FamilyPage() {
               ))}
             </CardContent>
           </Card>
+
+
 
           <Card>
             <CardHeader className="pb-2">
