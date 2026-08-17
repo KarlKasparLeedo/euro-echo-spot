@@ -12,6 +12,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
+import { Badge } from "@/components/ui/badge";
+import { SurplusCard } from "@/components/SurplusCard";
 
 export const Route = createFileRoute("/_authenticated/goals")({
   head: () => ({
