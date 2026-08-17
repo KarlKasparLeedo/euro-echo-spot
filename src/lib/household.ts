@@ -76,18 +76,15 @@ export async function createHousehold(name: string): Promise<Household> {
 }
 
 export async function joinHousehold(code: string): Promise<void> {
-  const uid = await currentUserId();
-  const { data, error } = await supabase
-    .from("households")
-    .select("id")
-    .eq("invite_code", code.trim().toUpperCase())
-    .maybeSingle();
-  if (error) throw error;
-  if (!data) throw new Error("Sellist kutsekoodi ei leitud");
-  const { error: mErr } = await supabase
-    .from("household_members")
-    .insert({ household_id: data.id, user_id: uid });
-  if (mErr) throw mErr;
+  const { error } = await supabase.rpc("join_household_by_code", {
+    _code: code.trim().toUpperCase(),
+  });
+  if (error) {
+    const msg = error.message || "";
+    if (msg.includes("ALREADY_MEMBER")) throw new Error("Oled juba peres – lahku esmalt");
+    if (msg.includes("CODE_NOT_FOUND")) throw new Error("Sellist kutsekoodi ei leitud");
+    throw new Error("Liitumine ebaõnnestus, proovi uuesti");
+  }
 }
 
 export async function leaveHousehold(): Promise<void> {
