@@ -96,11 +96,6 @@ function GoalsPage() {
         </p>
       </div>
 
-      <MonthCloseCard />
-
-      <SavingsAccountCard />
-
-      <SurplusCard />
 
 
       <Card>
