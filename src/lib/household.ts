@@ -205,6 +205,9 @@ export async function fetchFamilyOverview(key = monthKey(new Date())): Promise<F
       target: Number(g.target_amount),
       saved: Math.max(Number(g.saved_amount), allocated),
       deadline: g.deadline,
+      ownerId: g.user_id,
+      ownerName: nameOf(g.user_id),
+      isMine: g.user_id === uid,
       byMember,
     };
   });
