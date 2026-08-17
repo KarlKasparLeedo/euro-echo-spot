@@ -163,7 +163,12 @@ function TransactionsPage() {
             <ul className="divide-y">
               {rows.map((t) => (
                 <li key={t.id} className="flex items-center justify-between gap-3 py-3">
-                  <div className="min-w-0">
+                  <button
+                    type="button"
+                    className="min-w-0 flex-1 text-left"
+                    onClick={() => setEditing(t)}
+                    aria-label="Muuda tehingut"
+                  >
                     <p className="truncate text-sm font-medium">
                       {t.merchant || (t.type === "income" ? "Sissetulek" : "Kulu")}
                     </p>
@@ -172,7 +177,7 @@ function TransactionsPage() {
                       {t.category ? ` · ${t.category}` : ""}
                       {t.note ? ` · ${t.note}` : ""}
                     </p>
-                  </div>
+                  </button>
                   <div className="flex items-center gap-2">
                     <span
                       className={
@@ -182,6 +187,14 @@ function TransactionsPage() {
                       {t.type === "income" ? "+" : "−"}
                       {formatEur(t.amount)}
                     </span>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      aria-label="Muuda"
+                      onClick={() => setEditing(t)}
+                    >
+                      <Pencil className="h-4 w-4 text-muted-foreground" />
+                    </Button>
                     <Button
                       variant="ghost"
                       size="icon"
