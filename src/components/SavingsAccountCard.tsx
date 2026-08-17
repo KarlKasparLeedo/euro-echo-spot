@@ -123,9 +123,14 @@ export function SavingsAccountCard() {
     onSuccess: (value) => {
       qc.invalidateQueries({ queryKey: ["savings"] });
       qc.invalidateQueries({ queryKey: ["goals"] });
+      qc.invalidateQueries({ queryKey: ["transactions"] });
       setAmount("");
       setNote("");
-      toast.success(`${formatEur(value)} · ${MODE_LABEL[mode]}`);
+      toast.success(
+        mode === "withdrawal"
+          ? `${formatEur(value)} kogumiskontolt kuu rahakotti`
+          : `${formatEur(value)} · ${MODE_LABEL[mode]}`,
+      );
     },
     onError: (e: Error) => toast.error(e.message),
   });
