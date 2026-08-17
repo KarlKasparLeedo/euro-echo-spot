@@ -366,12 +366,25 @@ export async function withdrawWithCoverage(
   for (const c of coverage) {
     if (c.amount > 0) await releaseFromGoal(c.goalId, c.amount, "Kaetud väljavõtmise jaoks");
   }
+  const today = new Date().toISOString().slice(0, 10);
   const { error } = await supabase.from("savings_movements").insert({
     kind: "withdrawal",
     amount,
+    date: today,
     note: note?.trim() || null,
   });
   if (error) throw error;
+
+  // Raha liigub kuu rahakotti, seega kirjendame sissetulekuna.
+  const { error: txErr } = await supabase.from("transactions").insert({
+    type: "income",
+    amount,
+    category: "Muu/liigitamata",
+    merchant: "Kogumiskontolt",
+    date: today,
+    note: note?.trim() || "Võetud kogumiskontolt välja",
+  });
+  if (txErr) throw txErr;
 }
 
 /** Teadaolev igakuine sissetulek korduvatest tehingutest. */
