@@ -21,6 +21,7 @@ import {
   fetchBudgets,
   fetchRecurring,
   applyRecurring,
+  pendingVariableIncomes,
   monthKey,
   inMonth,
   sum,
@@ -28,6 +29,7 @@ import {
   type Txn,
 } from "@/lib/finance";
 import { CATEGORY_COLORS, formatEur } from "@/lib/categories";
+import { ConfirmIncomeCard } from "@/components/ConfirmIncomeCard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
