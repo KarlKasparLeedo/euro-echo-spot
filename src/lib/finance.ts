@@ -222,9 +222,11 @@ export async function setOnboardingCompleted(value: boolean): Promise<void> {
   if (error) throw error;
 }
 
+export type SavingsMovementKind = "deposit" | "withdrawal" | "goal" | "goal_release";
+
 export type SavingsMovement = {
   id: string;
-  kind: "deposit" | "withdrawal" | "goal";
+  kind: SavingsMovementKind;
   amount: number;
   goal_id: string | null;
   note: string | null;
@@ -241,9 +243,78 @@ export async function fetchSavingsMovements(): Promise<SavingsMovement[]> {
   return (data ?? []).map((m) => ({ ...m, amount: Number(m.amount) })) as SavingsMovement[];
 }
 
-/** Kogumiskonto jääk: sissemaksed miinus väljamaksed ja eesmärkidesse suunatud summad. */
+/**
+ * Kogumiskonto kogusumma: sissemaksed miinus päris väljavõtmised.
+ * Eesmärgile märgistamine ei vähenda kogusummat — raha jääb samale kontole.
+ */
 export function savingsBalance(movements: SavingsMovement[]): number {
-  return movements.reduce((acc, m) => acc + (m.kind === "deposit" ? m.amount : -m.amount), 0);
+  return movements.reduce((acc, m) => {
+    if (m.kind === "deposit") return acc + m.amount;
+    if (m.kind === "withdrawal") return acc - m.amount;
+    return acc;
+  }, 0);
+}
+
+/** Iga eesmärgi sahtlis olev summa kogumiskontol. */
+export function goalSavedFromMovements(movements: SavingsMovement[]): Record<string, number> {
+  const map: Record<string, number> = {};
+  for (const m of movements) {
+    if (!m.goal_id) continue;
+    if (m.kind === "goal") map[m.goal_id] = (map[m.goal_id] ?? 0) + m.amount;
+    if (m.kind === "goal_release") map[m.goal_id] = (map[m.goal_id] ?? 0) - m.amount;
+  }
+  for (const k of Object.keys(map)) map[k] = Math.max(map[k] ?? 0, 0);
+  return map;
+}
+
+/** Eesmärkidesse märgistatud raha kokku. */
+export function allocatedToGoals(movements: SavingsMovement[]): number {
+  return Object.values(goalSavedFromMovements(movements)).reduce((a, v) => a + v, 0);
+}
+
+/** Vaba puhver: kogumiskonto raha, mis pole ühegi eesmärgi külge märgitud. */
+export function freeBuffer(movements: SavingsMovement[]): number {
+  return savingsBalance(movements) - allocatedToGoals(movements);
+}
+
+/** Tõstab raha eesmärgi sahtlist tagasi vabasse puhvrisse. */
+export async function releaseFromGoal(goalId: string, amount: number, note?: string): Promise<void> {
+  const { error } = await supabase.from("savings_movements").insert({
+    kind: "goal_release",
+    amount,
+    goal_id: goalId,
+    note: note?.trim() || null,
+  });
+  if (error) throw error;
+  const { data, error: gErr } = await supabase
+    .from("goals")
+    .select("saved_amount")
+    .eq("id", goalId)
+    .maybeSingle();
+  if (gErr) throw gErr;
+  const next = Math.max(Number(data?.saved_amount ?? 0) - amount, 0);
+  const { error: upErr } = await supabase.from("goals").update({ saved_amount: next }).eq("id", goalId);
+  if (upErr) throw upErr;
+}
+
+/**
+ * Võtab kogumiskontolt raha välja. Kui vaba puhver ei kata summat,
+ * vabastab puudujääva osa etteantud eesmärkide sahtlitest.
+ */
+export async function withdrawWithCoverage(
+  amount: number,
+  coverage: { goalId: string; amount: number }[],
+  note?: string,
+): Promise<void> {
+  for (const c of coverage) {
+    if (c.amount > 0) await releaseFromGoal(c.goalId, c.amount, "Kaetud väljavõtmise jaoks");
+  }
+  const { error } = await supabase.from("savings_movements").insert({
+    kind: "withdrawal",
+    amount,
+    note: note?.trim() || null,
+  });
+  if (error) throw error;
 }
 
 /** Teadaolev igakuine sissetulek korduvatest tehingutest. */

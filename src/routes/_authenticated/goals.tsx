@@ -2,9 +2,16 @@ import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Trash2, Plus } from "lucide-react";
+import { Trash2, Plus, Undo2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { fetchGoals, fetchTransactions, type Goal } from "@/lib/finance";
+import {
+  fetchGoals,
+  fetchTransactions,
+  fetchSavingsMovements,
+  goalSavedFromMovements,
+  releaseFromGoal,
+  type Goal,
+} from "@/lib/finance";
 import { formatEur } from "@/lib/categories";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
@@ -33,6 +40,19 @@ function GoalsPage() {
   const qc = useQueryClient();
   const { data: goals } = useQuery({ queryKey: ["goals"], queryFn: fetchGoals });
   const { data: txns } = useQuery({ queryKey: ["transactions"], queryFn: fetchTransactions });
+  const { data: movements } = useQuery({ queryKey: ["savings"], queryFn: fetchSavingsMovements });
+  const perGoal = goalSavedFromMovements(movements ?? []);
+
+  const release = useMutation({
+    mutationFn: ({ id, amount }: { id: string; amount: number }) =>
+      releaseFromGoal(id, amount, "Võetud eesmärgilt tagasi"),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["savings"] });
+      qc.invalidateQueries({ queryKey: ["goals"] });
+      toast.success("Raha on tagasi vabas puhvris");
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
   const [name, setName] = useState("");
   const [target, setTarget] = useState("");
   const [deadline, setDeadline] = useState("");
@@ -151,7 +171,8 @@ function GoalsPage() {
       <div className="grid gap-4 md:grid-cols-2">
         {(goals ?? []).map((g: Goal) => {
           const isLinked = linked[g.id] ?? false;
-          const saved = isLinked ? savingsTotal : g.saved_amount;
+          const inSavings = perGoal[g.id] ?? 0;
+          const saved = isLinked ? savingsTotal : inSavings > 0 ? inSavings : g.saved_amount;
           const pct = g.target_amount > 0 ? (saved / g.target_amount) * 100 : 0;
           return (
             <Card key={g.id}>
@@ -176,7 +197,22 @@ function GoalsPage() {
                   {g.deadline && <span>kuni {g.deadline}</span>}
                 </div>
                 <Progress value={Math.min(pct, 100)} className="[&>div]:bg-success" />
-                {!isLinked && (
+                {inSavings > 0 && (
+                  <div className="flex items-center justify-between rounded-lg border p-2 text-sm">
+                    <span className="text-muted-foreground">
+                      Kogumiskontol märgitud {formatEur(inSavings)}
+                    </span>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      disabled={release.isPending}
+                      onClick={() => release.mutate({ id: g.id, amount: inSavings })}
+                    >
+                      <Undo2 className="mr-1 h-4 w-4" /> Võta tagasi
+                    </Button>
+                  </div>
+                )}
+                {!isLinked && inSavings === 0 && (
                   <div className="flex items-end gap-2">
                     <div className="flex-1 space-y-1.5">
                       <Label htmlFor={`saved-${g.id}`}>Kogutud summa (€)</Label>

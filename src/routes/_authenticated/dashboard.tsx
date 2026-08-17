@@ -23,6 +23,8 @@ import {
   fetchRecurring,
   fetchSavingsMovements,
   savingsBalance,
+  freeBuffer,
+  goalSavedFromMovements,
   applyRecurring,
   pendingVariableIncomes,
   monthKey,
@@ -123,6 +125,8 @@ function Dashboard() {
     .slice(0, 4);
 
   const savings = savingsBalance(savingsQuery.data ?? []);
+  const free = freeBuffer(savingsQuery.data ?? []);
+  const goalSaved = goalSavedFromMovements(savingsQuery.data ?? []);
 
   return (
     <div className="space-y-6">
@@ -156,7 +160,7 @@ function Dashboard() {
               <PiggyBank className="h-3.5 w-3.5" /> Kogumiskonto
             </p>
             <p className="mt-1 text-xl font-semibold">{formatEur(savings)}</p>
-            <p className="text-xs text-muted-foreground">halda kogumist</p>
+            <p className="text-xs text-muted-foreground">sellest vaba {formatEur(free)}</p>
           </Link>
           <div className="rounded-lg border p-3">
             <p className="text-xs text-muted-foreground">Kokku</p>
@@ -173,7 +177,8 @@ function Dashboard() {
               </Link>
             </div>
             {(goalsQuery.data ?? []).map((g) => {
-              const pct = g.target_amount > 0 ? (g.saved_amount / g.target_amount) * 100 : 0;
+              const saved = goalSaved[g.id] ?? g.saved_amount;
+              const pct = g.target_amount > 0 ? (saved / g.target_amount) * 100 : 0;
               return (
                 <div key={g.id} className="space-y-1.5">
                   <div className="flex justify-between text-sm">
@@ -186,7 +191,7 @@ function Dashboard() {
                       )}
                     </span>
                     <span className="text-muted-foreground">
-                      {formatEur(g.saved_amount)} / {formatEur(g.target_amount)}
+                      {formatEur(saved)} / {formatEur(g.target_amount)}
                     </span>
                   </div>
                   <Progress value={Math.min(pct, 100)} className="[&>div]:bg-success" />
