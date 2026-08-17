@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { fetchTransactions, type Txn } from "@/lib/finance";
 import { CATEGORIES, formatEur } from "@/lib/categories";
+import { AddTransactionDialog } from "@/components/AddTransactionDialog";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
