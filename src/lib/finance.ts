@@ -36,6 +36,7 @@ export type Recurring = {
   note: string | null;
   active: boolean;
   last_applied_month: string | null;
+  is_variable: boolean;
 };
 
 export function monthKey(d: Date | string): string {
@@ -106,8 +107,9 @@ export async function fetchRecurring(): Promise<Recurring[]> {
 export async function applyRecurring(items: Recurring[]): Promise<number> {
   const now = new Date();
   const start = monthStart(now);
-  const due = items.filter((r) => r.active && r.last_applied_month !== start);
+  const due = items.filter((r) => r.active && !r.is_variable && r.last_applied_month !== start);
   if (due.length === 0) return 0;
+
 
   const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
   const rows = due.map((r) => ({
@@ -229,4 +231,37 @@ export function plannedMonthlyIncome(recurring: Recurring[]): number {
 /** Eelarvetesse juba määratud summa kokku. */
 export function budgetsTotal(budgets: Budget[]): number {
   return budgets.reduce((a, b) => a + b.monthly_limit, 0);
+}
+
+/** Muutuva summaga sissetulekud, mille palgapäev on käes ja kuu veel kinnitamata. */
+export function pendingVariableIncomes(recurring: Recurring[], d = new Date()): Recurring[] {
+  const start = monthStart(d);
+  return recurring.filter(
+    (r) =>
+      r.active &&
+      r.is_variable &&
+      r.type === "income" &&
+      r.last_applied_month !== start &&
+      d.getDate() >= r.day_of_month,
+  );
+}
+
+/** Kinnitab muutuva sissetuleku tegeliku summa ja lisab tehingu. */
+export async function confirmVariableIncome(r: Recurring, amount: number, d = new Date()): Promise<void> {
+  const lastDay = new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate();
+  const date = `${monthKey(d)}-${String(Math.min(r.day_of_month, lastDay)).padStart(2, "0")}`;
+  const { error } = await supabase.from("transactions").insert({
+    type: "income" as const,
+    amount,
+    category: null,
+    merchant: r.merchant,
+    date,
+    note: r.note,
+  });
+  if (error) throw error;
+  const { error: upErr } = await supabase
+    .from("recurring_transactions")
+    .update({ last_applied_month: monthStart(d) })
+    .eq("id", r.id);
+  if (upErr) throw upErr;
 }

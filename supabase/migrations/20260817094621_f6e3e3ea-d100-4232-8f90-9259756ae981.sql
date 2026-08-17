@@ -1,0 +1,1 @@
+ALTER TABLE public.recurring_transactions ADD COLUMN IF NOT EXISTS is_variable boolean NOT NULL DEFAULT false;

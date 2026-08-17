@@ -1,11 +1,12 @@
 import { useMemo, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Trash2 } from "lucide-react";
+import { Pencil, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { fetchTransactions, type Txn } from "@/lib/finance";
 import { CATEGORIES, formatEur } from "@/lib/categories";
+import { AddTransactionDialog } from "@/components/AddTransactionDialog";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -45,6 +46,7 @@ function TransactionsPage() {
   const [to, setTo] = useState("");
   const [search, setSearch] = useState("");
   const [sort, setSort] = useState("date-desc");
+  const [editing, setEditing] = useState<Txn | null>(null);
 
   const del = useMutation({
     mutationFn: async (id: string) => {
@@ -163,7 +165,12 @@ function TransactionsPage() {
             <ul className="divide-y">
               {rows.map((t) => (
                 <li key={t.id} className="flex items-center justify-between gap-3 py-3">
-                  <div className="min-w-0">
+                  <button
+                    type="button"
+                    className="min-w-0 flex-1 text-left"
+                    onClick={() => setEditing(t)}
+                    aria-label="Muuda tehingut"
+                  >
                     <p className="truncate text-sm font-medium">
                       {t.merchant || (t.type === "income" ? "Sissetulek" : "Kulu")}
                     </p>
@@ -172,7 +179,7 @@ function TransactionsPage() {
                       {t.category ? ` · ${t.category}` : ""}
                       {t.note ? ` · ${t.note}` : ""}
                     </p>
-                  </div>
+                  </button>
                   <div className="flex items-center gap-2">
                     <span
                       className={
@@ -182,6 +189,14 @@ function TransactionsPage() {
                       {t.type === "income" ? "+" : "−"}
                       {formatEur(t.amount)}
                     </span>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      aria-label="Muuda"
+                      onClick={() => setEditing(t)}
+                    >
+                      <Pencil className="h-4 w-4 text-muted-foreground" />
+                    </Button>
                     <Button
                       variant="ghost"
                       size="icon"
@@ -197,6 +212,12 @@ function TransactionsPage() {
           )}
         </CardContent>
       </Card>
+
+      <AddTransactionDialog
+        open={!!editing}
+        onOpenChange={(v) => !v && setEditing(null)}
+        transaction={editing}
+      />
     </div>
   );
 }
