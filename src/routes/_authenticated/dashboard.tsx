@@ -156,7 +156,7 @@ function Dashboard() {
               <PiggyBank className="h-3.5 w-3.5" /> Kogumiskonto
             </p>
             <p className="mt-1 text-xl font-semibold">{formatEur(savings)}</p>
-            <p className="text-xs text-muted-foreground">halda kogumist</p>
+            <p className="text-xs text-muted-foreground">sellest vaba {formatEur(free)}</p>
           </Link>
           <div className="rounded-lg border p-3">
             <p className="text-xs text-muted-foreground">Kokku</p>
