@@ -123,6 +123,8 @@ function Dashboard() {
     .slice(0, 4);
 
   const savings = savingsBalance(savingsQuery.data ?? []);
+  const free = freeBuffer(savingsQuery.data ?? []);
+  const goalSaved = goalSavedFromMovements(savingsQuery.data ?? []);
 
   return (
     <div className="space-y-6">
