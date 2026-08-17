@@ -151,8 +151,8 @@ function Dashboard() {
           {totalIncome - totalExpense > 0 && (
             <p className="mt-3 text-sm text-muted-foreground">
               Sel kuul jääb üle {formatEur(totalIncome - totalExpense)}.{" "}
-              <Link to="/goals" className="text-primary hover:underline">
-                Suuna see eesmärki
+              <Link to="/savings" className="text-primary hover:underline">
+                Kanna kogumiskontole
               </Link>
             </p>
           )}

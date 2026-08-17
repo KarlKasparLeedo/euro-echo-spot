@@ -42,6 +42,7 @@ export function AddTransactionDialog({
   const [touchedCategory, setTouchedCategory] = useState(false);
   const [date, setDate] = useState(today());
   const [note, setNote] = useState("");
+  const [destination, setDestination] = useState<"month" | "savings">("month");
 
   useEffect(() => {
     if (!open) return;
@@ -73,12 +74,25 @@ export function AddTransactionDialog({
     setTouchedCategory(false);
     setDate(today());
     setNote("");
+    setDestination("month");
   }
 
   const mutation = useMutation({
     mutationFn: async () => {
       const value = Number(amount.replace(",", "."));
       if (!Number.isFinite(value) || value <= 0) throw new Error("Sisesta korrektne summa");
+
+      if (!transaction && type === "income" && destination === "savings") {
+        const { error } = await supabase.from("savings_movements").insert({
+          kind: "deposit",
+          amount: value,
+          date,
+          note: [merchant.trim(), note.trim()].filter(Boolean).join(" · ") || null,
+        });
+        if (error) throw error;
+        return;
+      }
+
       const payload = {
         type,
         amount: value,
@@ -100,7 +114,16 @@ export function AddTransactionDialog({
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["transactions"] });
-      toast.success(editing ? "Tehing salvestatud" : type === "expense" ? "Kulu lisatud" : "Sissetulek lisatud");
+      qc.invalidateQueries({ queryKey: ["savings"] });
+      toast.success(
+        editing
+          ? "Tehing salvestatud"
+          : type === "expense"
+            ? "Kulu lisatud"
+            : destination === "savings"
+              ? "Sissetulek lisatud kogumiskontole"
+              : "Sissetulek lisatud",
+      );
       reset();
       onOpenChange(false);
     },
@@ -190,15 +213,37 @@ export function AddTransactionDialog({
           )}
 
           {type === "income" && (
-            <div className="space-y-2">
-              <Label htmlFor="merchant-income">Nimetus</Label>
-              <Input
-                id="merchant-income"
-                placeholder="nt Palk"
-                value={merchant}
-                onChange={(e) => setMerchant(e.target.value)}
-              />
-            </div>
+            <>
+              <div className="space-y-2">
+                <Label htmlFor="merchant-income">Nimetus</Label>
+                <Input
+                  id="merchant-income"
+                  placeholder="nt Palk"
+                  value={merchant}
+                  onChange={(e) => setMerchant(e.target.value)}
+                />
+              </div>
+              {!editing && (
+                <div className="space-y-2">
+                  <Label>Kuhu raha läheb?</Label>
+                  <Select
+                    value={destination}
+                    onValueChange={(v) => setDestination(v as "month" | "savings")}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="month">Kuu kulutuste konto</SelectItem>
+                      <SelectItem value="savings">Kogumiskonto</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground">
+                    Kogumiskontole lisatud raha ei arvestata selle kuu kulutamiseks.
+                  </p>
+                </div>
+              )}
+            </>
           )}
 
           <div className="space-y-2">

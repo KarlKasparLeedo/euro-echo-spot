@@ -24,6 +24,7 @@ const NAV = [
   { to: "/transactions", label: "Tehingud", icon: ListOrdered },
   { to: "/budgets", label: "Eelarved", icon: PiggyBank },
   { to: "/goals", label: "Eesmärgid", icon: Target },
+  { to: "/savings", label: "Kogumine", icon: Wallet },
   { to: "/reports", label: "Aruanded", icon: BarChart3 },
   { to: "/settings", label: "Seaded", icon: Settings },
 ] as const;
@@ -78,7 +79,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         </Button>
 
         <nav className="fixed bottom-0 left-0 right-0 z-30 border-t bg-card md:hidden">
-          <div className="grid grid-cols-6">
+          <div className="grid grid-cols-7">
             {NAV.map((item) => (
               <Link
                 key={item.to}
