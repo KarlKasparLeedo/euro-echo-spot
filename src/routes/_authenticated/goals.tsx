@@ -12,6 +12,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
+import { Badge } from "@/components/ui/badge";
+import { SurplusCard } from "@/components/SurplusCard";
 
 export const Route = createFileRoute("/_authenticated/goals")({
   head: () => ({
@@ -92,6 +94,8 @@ function GoalsPage() {
         </p>
       </div>
 
+      <SurplusCard />
+
       <Card>
         <CardHeader className="pb-2">
           <CardTitle className="text-base">Uus eesmärk</CardTitle>
@@ -142,7 +146,12 @@ function GoalsPage() {
             <Card key={g.id}>
               <CardHeader className="pb-2">
                 <CardTitle className="flex items-center justify-between text-base">
-                  {g.name}
+                  <span className="flex items-center gap-2">
+                    {g.name}
+                    {saved >= g.target_amount && (
+                      <Badge className="bg-success text-success-foreground">Täidetud</Badge>
+                    )}
+                  </span>
                   <Button variant="ghost" size="icon" aria-label="Kustuta" onClick={() => remove.mutate(g.id)}>
                     <Trash2 className="h-4 w-4 text-muted-foreground" />
                   </Button>

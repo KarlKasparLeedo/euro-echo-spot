@@ -139,6 +139,14 @@ function Dashboard() {
               <p className="text-lg font-semibold">{formatEur(totalIncome)}</p>
             </div>
           </div>
+          {totalIncome - totalExpense > 0 && (
+            <p className="mt-3 text-sm text-muted-foreground">
+              Sel kuul jääb üle {formatEur(totalIncome - totalExpense)}.{" "}
+              <Link to="/goals" className="text-primary hover:underline">
+                Suuna see eesmärki
+              </Link>
+            </p>
+          )}
         </CardContent>
       </Card>
 
