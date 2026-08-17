@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { SurplusCard } from "@/components/SurplusCard";
+import { SavingsAccountCard } from "@/components/SavingsAccountCard";
 
 export const Route = createFileRoute("/_authenticated/goals")({
   head: () => ({
@@ -95,6 +96,8 @@ function GoalsPage() {
       </div>
 
       <SurplusCard />
+
+      <SavingsAccountCard />
 
       <Card>
         <CardHeader className="pb-2">

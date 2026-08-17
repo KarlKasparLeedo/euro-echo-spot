@@ -4,7 +4,16 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { AlertTriangle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { fetchBudgets, fetchTransactions, monthKey, inMonth } from "@/lib/finance";
+import {
+  fetchBudgets,
+  fetchRecurring,
+  fetchTransactions,
+  monthKey,
+  inMonth,
+  plannedMonthlyIncome,
+  budgetsTotal,
+} from "@/lib/finance";
+import { AllocationIndicator } from "@/components/AllocationIndicator";
 import { CATEGORIES, formatEur } from "@/lib/categories";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
@@ -35,6 +44,7 @@ function BudgetsPage() {
   const qc = useQueryClient();
   const { data: budgets } = useQuery({ queryKey: ["budgets"], queryFn: fetchBudgets });
   const { data: txns } = useQuery({ queryKey: ["transactions"], queryFn: fetchTransactions });
+  const { data: recurring } = useQuery({ queryKey: ["recurring"], queryFn: fetchRecurring });
   const [drafts, setDrafts] = useState<Record<string, string>>({});
 
   const key = monthKey(new Date());
@@ -70,6 +80,18 @@ function BudgetsPage() {
           Sea kuueelarve iga kategooria kohta. Hoiatame 80% ja 100% juures.
         </p>
       </div>
+
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-base">Sissetuleku jaotus</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <AllocationIndicator
+            income={plannedMonthlyIncome(recurring ?? [])}
+            allocated={budgetsTotal(budgets ?? [])}
+          />
+        </CardContent>
+      </Card>
 
       <div className="grid gap-4 md:grid-cols-2">
         {CATEGORIES.map((category) => {
