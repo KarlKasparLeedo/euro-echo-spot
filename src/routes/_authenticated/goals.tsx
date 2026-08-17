@@ -94,6 +94,8 @@ function GoalsPage() {
         </p>
       </div>
 
+      <SurplusCard />
+
       <Card>
         <CardHeader className="pb-2">
           <CardTitle className="text-base">Uus eesmärk</CardTitle>
