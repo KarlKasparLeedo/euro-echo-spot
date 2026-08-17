@@ -277,6 +277,63 @@ export function freeBuffer(movements: SavingsMovement[]): number {
   return savingsBalance(movements) - allocatedToGoals(movements);
 }
 
+export type GoalFundSource = "buffer" | "month";
+
+/**
+ * Lisab eesmärgile raha konkreetsest allikast.
+ * - "buffer": raha on juba kogumiskontol, märgitakse ainult eesmärgi sahtlisse.
+ * - "month": kuu kulutuste kontolt kantakse raha kogumiskontole ja sealt eesmärgile.
+ */
+export async function fundGoal(
+  goalId: string,
+  amount: number,
+  source: GoalFundSource,
+  note?: string,
+): Promise<void> {
+  if (!Number.isFinite(amount) || amount <= 0) throw new Error("Sisesta korrektne summa");
+  const today = new Date().toISOString().slice(0, 10);
+
+  if (source === "month") {
+    const { error: txErr } = await supabase.from("transactions").insert({
+      type: "expense",
+      amount,
+      category: "Finants ja kohustused",
+      merchant: "Kogumiskonto",
+      date: today,
+      note: note?.trim() || "Ülekanne eesmärgile",
+    });
+    if (txErr) throw txErr;
+    const { error: depErr } = await supabase.from("savings_movements").insert({
+      kind: "deposit",
+      amount,
+      date: today,
+      note: "Kuu rahast eesmärgile",
+    });
+    if (depErr) throw depErr;
+  }
+
+  const { error } = await supabase.from("savings_movements").insert({
+    kind: "goal",
+    amount,
+    goal_id: goalId,
+    date: today,
+    note: note?.trim() || null,
+  });
+  if (error) throw error;
+
+  const { data, error: gErr } = await supabase
+    .from("goals")
+    .select("saved_amount")
+    .eq("id", goalId)
+    .maybeSingle();
+  if (gErr) throw gErr;
+  const { error: upErr } = await supabase
+    .from("goals")
+    .update({ saved_amount: Number(data?.saved_amount ?? 0) + amount })
+    .eq("id", goalId);
+  if (upErr) throw upErr;
+}
+
 /** Tõstab raha eesmärgi sahtlist tagasi vabasse puhvrisse. */
 export async function releaseFromGoal(goalId: string, amount: number, note?: string): Promise<void> {
   const { error } = await supabase.from("savings_movements").insert({
