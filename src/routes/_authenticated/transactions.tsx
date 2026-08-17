@@ -211,6 +211,12 @@ function TransactionsPage() {
           )}
         </CardContent>
       </Card>
+
+      <AddTransactionDialog
+        open={!!editing}
+        onOpenChange={(v) => !v && setEditing(null)}
+        transaction={editing}
+      />
     </div>
   );
 }
