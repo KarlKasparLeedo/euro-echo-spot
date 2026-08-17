@@ -37,7 +37,7 @@ export const Route = createFileRoute("/_authenticated/family")({
 function FamilyPage() {
   const [key, setKey] = useState(monthKey(new Date()));
   const { data: txns } = useQuery({ queryKey: ["transactions"], queryFn: fetchTransactions });
-  const { data, isLoading } = useQuery({
+  const { data } = useQuery({
     queryKey: ["family", key],
     queryFn: () => fetchFamilyOverview(key),
   });
