@@ -16,6 +16,7 @@ export type Budget = {
   category: string;
   monthly_limit: number;
   rollover: boolean;
+  shared: boolean;
 };
 
 export type Goal = {
@@ -24,6 +25,7 @@ export type Goal = {
   target_amount: number;
   saved_amount: number;
   deadline: string | null;
+  shared: boolean;
 };
 
 export type Recurring = {
