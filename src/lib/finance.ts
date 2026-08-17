@@ -232,3 +232,36 @@ export function plannedMonthlyIncome(recurring: Recurring[]): number {
 export function budgetsTotal(budgets: Budget[]): number {
   return budgets.reduce((a, b) => a + b.monthly_limit, 0);
 }
+
+/** Muutuva summaga sissetulekud, mille palgapäev on käes ja kuu veel kinnitamata. */
+export function pendingVariableIncomes(recurring: Recurring[], d = new Date()): Recurring[] {
+  const start = monthStart(d);
+  return recurring.filter(
+    (r) =>
+      r.active &&
+      r.is_variable &&
+      r.type === "income" &&
+      r.last_applied_month !== start &&
+      d.getDate() >= r.day_of_month,
+  );
+}
+
+/** Kinnitab muutuva sissetuleku tegeliku summa ja lisab tehingu. */
+export async function confirmVariableIncome(r: Recurring, amount: number, d = new Date()): Promise<void> {
+  const lastDay = new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate();
+  const date = `${monthKey(d)}-${String(Math.min(r.day_of_month, lastDay)).padStart(2, "0")}`;
+  const { error } = await supabase.from("transactions").insert({
+    type: "income" as const,
+    amount,
+    category: null,
+    merchant: r.merchant,
+    date,
+    note: r.note,
+  });
+  if (error) throw error;
+  const { error: upErr } = await supabase
+    .from("recurring_transactions")
+    .update({ last_applied_month: monthStart(d) })
+    .eq("id", r.id);
+  if (upErr) throw upErr;
+}
