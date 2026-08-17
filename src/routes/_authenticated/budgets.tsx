@@ -55,18 +55,24 @@ function BudgetsPage() {
       category,
       limit,
       rollover,
+      shared,
     }: {
       category: string;
       limit: number;
       rollover: boolean;
+      shared: boolean;
     }) => {
       const { error } = await supabase
         .from("budgets")
-        .upsert({ category, monthly_limit: limit, rollover }, { onConflict: "user_id,category" });
+        .upsert(
+          { category, monthly_limit: limit, rollover, shared },
+          { onConflict: "user_id,category" },
+        );
       if (error) throw error;
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["budgets"] });
+      qc.invalidateQueries({ queryKey: ["family"] });
       toast.success("Eelarve salvestatud");
     },
     onError: (e: Error) => toast.error(e.message),
