@@ -126,6 +126,9 @@ function Dashboard() {
 
       <ConfirmIncomeCard items={pendingVariableIncomes(recQuery.data ?? [])} />
 
+      <MonthCloseCard />
+
+
 
       <Card className="border-primary/20 bg-secondary/40">
         <CardContent className="pt-6">
