@@ -191,35 +191,65 @@ function SettingsPage() {
               <Label htmlFor="rec-day">Kuupäev kuus (1-28)</Label>
               <Input id="rec-day" type="number" min={1} max={28} value={day} onChange={(e) => setDay(e.target.value)} />
             </div>
+            {type === "income" && (
+              <label className="flex items-center gap-3 sm:col-span-2">
+                <Switch checked={isVariable} onCheckedChange={setIsVariable} aria-label="Summa on iga kuu erinev" />
+                <span className="text-sm">
+                  Summa on iga kuu erinev (nt põhipalk + boonus) — küsime palgapäeval üle
+                </span>
+              </label>
+            )}
             <Button type="submit" className="sm:col-span-2">
               <Plus className="mr-1 h-4 w-4" /> Lisa korduv tehing
             </Button>
           </form>
 
-          <ul className="divide-y">
-            {(recurring ?? []).map((r: Recurring) => (
-              <li key={r.id} className="flex items-center justify-between py-3">
-                <div>
-                  <p className="text-sm font-medium">
-                    {r.merchant || (r.type === "income" ? "Sissetulek" : "Kulu")} · {formatEur(r.amount)}
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    iga kuu {r.day_of_month}. kuupäeval{r.category ? ` · ${r.category}` : ""}
-                  </p>
+          <div className="grid gap-6 sm:grid-cols-2">
+            {(
+              [
+                ["income", "Sissetulekud"],
+                ["expense", "Kulud"],
+              ] as const
+            ).map(([kind, title]) => {
+              const list = (recurring ?? []).filter((r: Recurring) => r.type === kind);
+              const total = list.filter((r) => r.active).reduce((a, r) => a + r.amount, 0);
+              return (
+                <div key={kind}>
+                  <h3 className="mb-1 text-sm font-semibold">{title}</h3>
+                  {list.length === 0 ? (
+                    <p className="py-3 text-sm text-muted-foreground">Ridu pole</p>
+                  ) : (
+                    <ul className="divide-y">
+                      {list.map((r: Recurring) => (
+                        <li key={r.id} className="flex items-center justify-between gap-2 py-3">
+                          <div className="min-w-0">
+                            <p className="truncate text-sm font-medium">
+                              {r.merchant || title} · {formatEur(r.amount)}
+                            </p>
+                            <p className="truncate text-xs text-muted-foreground">
+                              iga kuu {r.day_of_month}. kuupäeval{r.category ? ` · ${r.category}` : ""}
+                              {r.is_variable ? " · muutuv summa" : ""}
+                            </p>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <Switch
+                              checked={r.active}
+                              onCheckedChange={(v) => toggle.mutate({ id: r.id, active: v })}
+                              aria-label="Aktiivne"
+                            />
+                            <Button variant="ghost" size="icon" aria-label="Kustuta" onClick={() => remove.mutate(r.id)}>
+                              <Trash2 className="h-4 w-4 text-muted-foreground" />
+                            </Button>
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                  <p className="pt-2 text-xs text-muted-foreground">Kuus kokku {formatEur(total)}</p>
                 </div>
-                <div className="flex items-center gap-2">
-                  <Switch
-                    checked={r.active}
-                    onCheckedChange={(v) => toggle.mutate({ id: r.id, active: v })}
-                    aria-label="Aktiivne"
-                  />
-                  <Button variant="ghost" size="icon" aria-label="Kustuta" onClick={() => remove.mutate(r.id)}>
-                    <Trash2 className="h-4 w-4 text-muted-foreground" />
-                  </Button>
-                </div>
-              </li>
-            ))}
-          </ul>
+              );
+            })}
+          </div>
         </CardContent>
       </Card>
     </div>
