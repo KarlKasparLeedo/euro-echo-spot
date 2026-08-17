@@ -110,6 +110,7 @@ function BudgetsPage() {
             .reduce((a, t) => a + t.amount, 0);
           const base = budget?.monthly_limit ?? 0;
           const rollover = budget?.rollover ?? false;
+          const shared = budget?.shared ?? false;
           const carry = rollover ? Math.max(base - prevSpent, 0) : 0;
           const limit = base + carry;
           const pct = limit > 0 ? (spent / limit) * 100 : 0;
