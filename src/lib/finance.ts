@@ -263,7 +263,7 @@ export function goalSavedFromMovements(movements: SavingsMovement[]): Record<str
     if (m.kind === "goal") map[m.goal_id] = (map[m.goal_id] ?? 0) + m.amount;
     if (m.kind === "goal_release") map[m.goal_id] = (map[m.goal_id] ?? 0) - m.amount;
   }
-  for (const k of Object.keys(map)) map[k] = Math.max(map[k], 0);
+  for (const k of Object.keys(map)) map[k] = Math.max(map[k] ?? 0, 0);
   return map;
 }
 
