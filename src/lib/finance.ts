@@ -379,7 +379,7 @@ export async function withdrawWithCoverage(
   const { error: txErr } = await supabase.from("transactions").insert({
     type: "income",
     amount,
-    category: "Muu",
+    category: "Muu/liigitamata",
     merchant: "Kogumiskontolt",
     date: today,
     note: note?.trim() || "Võetud kogumiskontolt välja",
