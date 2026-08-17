@@ -201,6 +201,16 @@ function GoalsPage() {
                     onCheckedChange={(v) => setLinked((l) => ({ ...l, [g.id]: v }))}
                   />
                 </div>
+                <div className="flex items-center justify-between">
+                  <Label htmlFor={`share-${g.id}`} className="text-sm font-normal">
+                    Jaga perega
+                  </Label>
+                  <Switch
+                    id={`share-${g.id}`}
+                    checked={g.shared}
+                    onCheckedChange={(v) => setShared.mutate({ id: g.id, shared: v })}
+                  />
+                </div>
               </CardContent>
             </Card>
           );
