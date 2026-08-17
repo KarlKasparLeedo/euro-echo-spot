@@ -123,6 +123,9 @@ function Dashboard() {
         </p>
       </div>
 
+      <ConfirmIncomeCard items={pendingVariableIncomes(recQuery.data ?? [])} />
+
+
       <Card className="border-primary/20 bg-secondary/40">
         <CardContent className="pt-6">
           <p className="text-sm text-muted-foreground">Praegune bilanss</p>
