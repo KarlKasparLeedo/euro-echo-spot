@@ -27,8 +27,12 @@ export type SharedGoalRow = {
   target: number;
   saved: number;
   deadline: string | null;
+  ownerId: string;
+  ownerName: string;
+  isMine: boolean;
   byMember: { user_id: string; name: string; amount: number }[];
 };
+
 
 export type FamilyOverview = {
   household: Household | null;
