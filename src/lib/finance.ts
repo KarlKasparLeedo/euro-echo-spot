@@ -265,3 +265,77 @@ export async function confirmVariableIncome(r: Recurring, amount: number, d = ne
     .eq("id", r.id);
   if (upErr) throw upErr;
 }
+
+export type MonthClosure = {
+  id: string;
+  month: string;
+  amount: number;
+};
+
+export async function fetchMonthClosures(): Promise<MonthClosure[]> {
+  const { data, error } = await supabase
+    .from("month_closures")
+    .select("id, month, amount")
+    .order("month", { ascending: false });
+  if (error) throw error;
+  return (data ?? []).map((m) => ({ ...m, amount: Number(m.amount) })) as MonthClosure[];
+}
+
+/** Kannab kuu ülejäägi kogumiskontole ja märgib kuu lõpetatuks. */
+export async function closeMonth(month: string, amount: number): Promise<void> {
+  const { error } = await supabase.from("month_closures").insert({ month, amount });
+  if (error) throw error;
+  if (amount > 0) {
+    const { error: movErr } = await supabase.from("savings_movements").insert({
+      kind: "deposit",
+      amount,
+      note: `Kuu ülejääk ${month.slice(0, 7)}`,
+      date: month,
+    });
+    if (movErr) throw movErr;
+  }
+}
+
+/** Kuu esimene päev ISO kujul (nt "2026-08-01") suvalisest kuuvõtmest. */
+export function monthKeyToStart(key: string): string {
+  return `${key}-01`;
+}
+
+export function monthLabel(key: string): string {
+  const [y, m] = key.split("-");
+  return `${MONTH_NAMES[Number(m) - 1]} ${y}`;
+}
+
+/** Kuud, mille kohta on tehinguid — uuemast vanemani. */
+export function availableMonths(txns: Txn[]): string[] {
+  const keys = new Set(txns.map((t) => t.date.slice(0, 7)));
+  keys.add(monthKey(new Date()));
+  return [...keys].sort().reverse();
+}
+
+export type MonthReport = {
+  key: string;
+  income: number;
+  expense: number;
+  surplus: number;
+  byCategory: Array<{ name: string; value: number }>;
+  txns: Txn[];
+};
+
+export function monthReport(txns: Txn[], key: string): MonthReport {
+  const list = txns.filter((t) => inMonth(t, key));
+  const income = sum(list.filter((t) => t.type === "income"));
+  const expense = sum(list.filter((t) => t.type === "expense"));
+  const byCategory = Object.entries(
+    list
+      .filter((t) => t.type === "expense")
+      .reduce<Record<string, number>>((acc, t) => {
+        const c = t.category ?? "Muu/liigitamata";
+        acc[c] = (acc[c] ?? 0) + t.amount;
+        return acc;
+      }, {}),
+  )
+    .map(([name, value]) => ({ name, value }))
+    .sort((a, b) => b.value - a.value);
+  return { key, income, expense, surplus: income - expense, byCategory, txns: list };
+}

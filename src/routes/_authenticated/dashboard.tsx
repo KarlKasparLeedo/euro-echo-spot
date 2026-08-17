@@ -30,6 +30,7 @@ import {
 } from "@/lib/finance";
 import { CATEGORY_COLORS, formatEur } from "@/lib/categories";
 import { ConfirmIncomeCard } from "@/components/ConfirmIncomeCard";
+import { MonthCloseCard } from "@/components/MonthCloseCard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
@@ -124,6 +125,9 @@ function Dashboard() {
       </div>
 
       <ConfirmIncomeCard items={pendingVariableIncomes(recQuery.data ?? [])} />
+
+      <MonthCloseCard />
+
 
 
       <Card className="border-primary/20 bg-secondary/40">

@@ -15,6 +15,7 @@ import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { SurplusCard } from "@/components/SurplusCard";
 import { SavingsAccountCard } from "@/components/SavingsAccountCard";
+import { MonthCloseCard } from "@/components/MonthCloseCard";
 
 export const Route = createFileRoute("/_authenticated/goals")({
   head: () => ({
@@ -95,9 +96,12 @@ function GoalsPage() {
         </p>
       </div>
 
-      <SurplusCard />
+      <MonthCloseCard />
 
       <SavingsAccountCard />
+
+      <SurplusCard />
+
 
       <Card>
         <CardHeader className="pb-2">
