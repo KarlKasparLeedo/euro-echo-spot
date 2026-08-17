@@ -38,13 +38,9 @@ function OnboardingPage() {
 
   const [goals, setGoals] = useState<GoalRow[]>([{ name: "", target: "", deadline: "" }]);
   const [hasIncome, setHasIncome] = useState<boolean | null>(null);
-  const [incomes, setIncomes] = useState<RecRow[]>([
-    { amount: "", merchant: "Palk", category: "", day: "1" },
-  ]);
+  const [incomes, setIncomes] = useState<RecRow[]>([{ amount: "", merchant: "Palk", category: "", day: "1" }]);
   const [hasExpense, setHasExpense] = useState<boolean | null>(null);
-  const [expenses, setExpenses] = useState<RecRow[]>([
-    { amount: "", merchant: "Üür", category: "Eluase", day: "1" },
-  ]);
+  const [expenses, setExpenses] = useState<RecRow[]>([{ amount: "", merchant: "Üür", category: "Eluase", day: "1" }]);
 
   const num = (v: string) => Number(v.replace(",", "."));
 
@@ -97,12 +93,7 @@ function OnboardingPage() {
     }
   }
 
-  function recEditor(
-    rows: RecRow[],
-    setRows: (r: RecRow[]) => void,
-    withCategory: boolean,
-    idPrefix: string,
-  ) {
+  function recEditor(rows: RecRow[], setRows: (r: RecRow[]) => void, withCategory: boolean, idPrefix: string) {
     return (
       <div className="space-y-3">
         {rows.map((r, i) => (
@@ -113,9 +104,7 @@ function OnboardingPage() {
                 id={`${idPrefix}-amount-${i}`}
                 inputMode="decimal"
                 value={r.amount}
-                onChange={(e) =>
-                  setRows(rows.map((x, j) => (j === i ? { ...x, amount: e.target.value } : x)))
-                }
+                onChange={(e) => setRows(rows.map((x, j) => (j === i ? { ...x, amount: e.target.value } : x)))}
               />
             </div>
             <div className="space-y-1.5">
@@ -123,9 +112,7 @@ function OnboardingPage() {
               <Input
                 id={`${idPrefix}-name-${i}`}
                 value={r.merchant}
-                onChange={(e) =>
-                  setRows(rows.map((x, j) => (j === i ? { ...x, merchant: e.target.value } : x)))
-                }
+                onChange={(e) => setRows(rows.map((x, j) => (j === i ? { ...x, merchant: e.target.value } : x)))}
               />
             </div>
             {withCategory && (
@@ -133,9 +120,7 @@ function OnboardingPage() {
                 <Label>Kategooria</Label>
                 <Select
                   value={r.category || "Eluase"}
-                  onValueChange={(v) =>
-                    setRows(rows.map((x, j) => (j === i ? { ...x, category: v } : x)))
-                  }
+                  onValueChange={(v) => setRows(rows.map((x, j) => (j === i ? { ...x, category: v } : x)))}
                 >
                   <SelectTrigger>
                     <SelectValue />
@@ -159,9 +144,7 @@ function OnboardingPage() {
                   min={1}
                   max={28}
                   value={r.day}
-                  onChange={(e) =>
-                    setRows(rows.map((x, j) => (j === i ? { ...x, day: e.target.value } : x)))
-                  }
+                  onChange={(e) => setRows(rows.map((x, j) => (j === i ? { ...x, day: e.target.value } : x)))}
                 />
               </div>
               {rows.length > 1 && (
@@ -182,10 +165,7 @@ function OnboardingPage() {
           type="button"
           variant="outline"
           onClick={() =>
-            setRows([
-              ...rows,
-              { amount: "", merchant: "", category: withCategory ? "Eluase" : "", day: "1" },
-            ])
+            setRows([...rows, { amount: "", merchant: "", category: withCategory ? "Eluase" : "", day: "1" }])
           }
         >
           <Plus className="mr-1 h-4 w-4" /> Lisa rida
@@ -199,14 +179,14 @@ function OnboardingPage() {
   return (
     <div className="mx-auto max-w-3xl space-y-5">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Seadistame sinu rahaasjad</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">Seadistame eelarve ja rahasjad</h1>
         <p className="text-sm text-muted-foreground">Samm {step}/3 · võtab paar minutit</p>
       </div>
 
       {step === 1 && (
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-base">Mille poole sa säästad?</CardTitle>
+            <CardTitle className="text-base">Mille jaoks sa säästad?</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             {goals.map((g, i) => (
@@ -217,9 +197,7 @@ function OnboardingPage() {
                     id={`g-name-${i}`}
                     placeholder="Reis"
                     value={g.name}
-                    onChange={(e) =>
-                      setGoals(goals.map((x, j) => (j === i ? { ...x, name: e.target.value } : x)))
-                    }
+                    onChange={(e) => setGoals(goals.map((x, j) => (j === i ? { ...x, name: e.target.value } : x)))}
                   />
                 </div>
                 <div className="space-y-1.5">
@@ -228,9 +206,7 @@ function OnboardingPage() {
                     id={`g-target-${i}`}
                     inputMode="decimal"
                     value={g.target}
-                    onChange={(e) =>
-                      setGoals(goals.map((x, j) => (j === i ? { ...x, target: e.target.value } : x)))
-                    }
+                    onChange={(e) => setGoals(goals.map((x, j) => (j === i ? { ...x, target: e.target.value } : x)))}
                   />
                 </div>
                 <div className="flex items-end gap-2">
@@ -267,9 +243,7 @@ function OnboardingPage() {
               >
                 <Plus className="mr-1 h-4 w-4" /> Lisa eesmärk
               </Button>
-              {totalGoals > 0 && (
-                <p className="text-sm text-muted-foreground">Kokku {formatEur(totalGoals)}</p>
-              )}
+              {totalGoals > 0 && <p className="text-sm text-muted-foreground">Kokku {formatEur(totalGoals)}</p>}
             </div>
           </CardContent>
         </Card>
@@ -278,9 +252,7 @@ function OnboardingPage() {
       {step === 2 && (
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-base">
-              Kas sul on igakuiseid ette teada sissetulekuid?
-            </CardTitle>
+            <CardTitle className="text-base">Kas sul on igakuiseid ette teada sissetulekuid?</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex gap-2">
@@ -306,10 +278,7 @@ function OnboardingPage() {
               <Button variant={hasExpense === true ? "default" : "outline"} onClick={() => setHasExpense(true)}>
                 Jah
               </Button>
-              <Button
-                variant={hasExpense === false ? "default" : "outline"}
-                onClick={() => setHasExpense(false)}
-              >
+              <Button variant={hasExpense === false ? "default" : "outline"} onClick={() => setHasExpense(false)}>
                 Ei
               </Button>
             </div>
