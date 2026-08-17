@@ -1,0 +1,2 @@
+ALTER TABLE public.savings_movements DROP CONSTRAINT IF EXISTS savings_movements_kind_check;
+ALTER TABLE public.savings_movements ADD CONSTRAINT savings_movements_kind_check CHECK (kind IN ('deposit','withdrawal','goal','goal_release'));
