@@ -95,9 +95,12 @@ function GoalsPage() {
         </p>
       </div>
 
-      <SurplusCard />
+      <MonthCloseCard />
 
       <SavingsAccountCard />
+
+      <SurplusCard />
+
 
       <Card>
         <CardHeader className="pb-2">
