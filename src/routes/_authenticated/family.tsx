@@ -16,6 +16,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
+const MEMBER_FILL = ["bg-primary", "bg-success", "bg-warning", "bg-destructive"];
+const MEMBER_TRACK = ["bg-primary/15", "bg-success/15", "bg-warning/15", "bg-destructive/15"];
+
 export const Route = createFileRoute("/_authenticated/family")({
   head: () => ({
     meta: [
@@ -102,24 +105,48 @@ function FamilyPage() {
                 </p>
               )}
               {data.budgets.map((b) => {
-                const pct = b.limit > 0 ? (b.spent / b.limit) * 100 : 0;
+                const members = b.byMember;
+                const totalLimit = members.reduce((a, m) => a + m.limit, 0);
+                const scale = Math.max(totalLimit, b.spent, 1);
                 return (
                   <div key={b.category} className="space-y-2">
                     <div className="flex justify-between text-sm">
                       <span className="font-medium">{b.category}</span>
                       <span className="text-muted-foreground">
-                        {formatEur(b.spent)} / {b.limit > 0 ? formatEur(b.limit) : "eelarveta"}
+                        {formatEur(b.spent)} / {totalLimit > 0 ? formatEur(totalLimit) : "eelarveta"}
                       </span>
                     </div>
-                    <Progress
-                      value={Math.min(pct, 100)}
-                      className={pct >= 100 ? "[&>div]:bg-destructive" : pct >= 80 ? "[&>div]:bg-warning" : ""}
-                    />
+                    <div className="flex h-5 w-full overflow-hidden rounded-md border bg-muted">
+                      {members.map((m, i) => {
+                        const share = (Math.max(m.limit, m.amount) / scale) * 100;
+                        const fill =
+                          Math.max(m.limit, m.amount) > 0
+                            ? (m.amount / Math.max(m.limit, m.amount)) * 100
+                            : 0;
+                        return (
+                          <div
+                            key={m.user_id}
+                            className={`relative h-full border-r last:border-r-0 ${MEMBER_TRACK[i % MEMBER_TRACK.length]}`}
+                            style={{ width: `${share}%` }}
+                            title={`${m.name}: ${formatEur(m.amount)} / ${formatEur(m.limit)}`}
+                          >
+                            <div
+                              className={`h-full ${MEMBER_FILL[i % MEMBER_FILL.length]}`}
+                              style={{ width: `${Math.min(fill, 100)}%` }}
+                            />
+                          </div>
+                        );
+                      })}
+                    </div>
                     <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
-                      {b.byMember.length === 0 && <span>selle kuu kulutusi pole</span>}
-                      {b.byMember.map((m) => (
-                        <span key={m.user_id}>
+                      {members.length === 0 && <span>selle kuu kulutusi pole</span>}
+                      {members.map((m, i) => (
+                        <span key={m.user_id} className="flex items-center gap-1.5">
+                          <span
+                            className={`inline-block h-2.5 w-2.5 rounded-sm ${MEMBER_FILL[i % MEMBER_FILL.length]}`}
+                          />
                           {m.name}: {formatEur(m.amount)}
+                          {m.limit > 0 ? ` / ${formatEur(m.limit)}` : " (eelarveta)"}
                         </span>
                       ))}
                     </div>
