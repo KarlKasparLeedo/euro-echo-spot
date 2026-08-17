@@ -1,0 +1,140 @@
+import { supabase } from "@/integrations/supabase/client";
+
+export type Txn = {
+  id: string;
+  type: "expense" | "income";
+  amount: number;
+  category: string | null;
+  merchant: string | null;
+  date: string;
+  note: string | null;
+  created_at: string;
+};
+
+export type Budget = {
+  id: string;
+  category: string;
+  monthly_limit: number;
+  rollover: boolean;
+};
+
+export type Goal = {
+  id: string;
+  name: string;
+  target_amount: number;
+  saved_amount: number;
+  deadline: string | null;
+};
+
+export type Recurring = {
+  id: string;
+  type: "expense" | "income";
+  amount: number;
+  category: string | null;
+  merchant: string | null;
+  day_of_month: number;
+  note: string | null;
+  active: boolean;
+  last_applied_month: string | null;
+};
+
+export function monthKey(d: Date | string): string {
+  const date = typeof d === "string" ? new Date(d) : d;
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
+}
+
+export function monthStart(d = new Date()): string {
+  return `${monthKey(d)}-01`;
+}
+
+export function monthEnd(d = new Date()): string {
+  const end = new Date(d.getFullYear(), d.getMonth() + 1, 0);
+  return `${monthKey(end)}-${String(end.getDate()).padStart(2, "0")}`;
+}
+
+export const MONTH_NAMES = [
+  "jaanuar",
+  "veebruar",
+  "märts",
+  "aprill",
+  "mai",
+  "juuni",
+  "juuli",
+  "august",
+  "september",
+  "oktoober",
+  "november",
+  "detsember",
+];
+
+export async function fetchTransactions(): Promise<Txn[]> {
+  const { data, error } = await supabase
+    .from("transactions")
+    .select("*")
+    .order("date", { ascending: false })
+    .order("created_at", { ascending: false });
+  if (error) throw error;
+  return (data ?? []).map((t) => ({ ...t, amount: Number(t.amount) })) as Txn[];
+}
+
+export async function fetchBudgets(): Promise<Budget[]> {
+  const { data, error } = await supabase.from("budgets").select("*").order("category");
+  if (error) throw error;
+  return (data ?? []).map((b) => ({ ...b, monthly_limit: Number(b.monthly_limit) })) as Budget[];
+}
+
+export async function fetchGoals(): Promise<Goal[]> {
+  const { data, error } = await supabase.from("goals").select("*").order("created_at");
+  if (error) throw error;
+  return (data ?? []).map((g) => ({
+    ...g,
+    target_amount: Number(g.target_amount),
+    saved_amount: Number(g.saved_amount),
+  })) as Goal[];
+}
+
+export async function fetchRecurring(): Promise<Recurring[]> {
+  const { data, error } = await supabase
+    .from("recurring_transactions")
+    .select("*")
+    .order("day_of_month");
+  if (error) throw error;
+  return (data ?? []).map((r) => ({ ...r, amount: Number(r.amount) })) as Recurring[];
+}
+
+/** Applies recurring transactions for the current month (once per month). */
+export async function applyRecurring(items: Recurring[]): Promise<number> {
+  const now = new Date();
+  const start = monthStart(now);
+  const due = items.filter((r) => r.active && r.last_applied_month !== start);
+  if (due.length === 0) return 0;
+
+  const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+  const rows = due.map((r) => ({
+    type: r.type,
+    amount: r.amount,
+    category: r.type === "expense" ? r.category : null,
+    merchant: r.merchant,
+    date: `${monthKey(now)}-${String(Math.min(r.day_of_month, lastDay)).padStart(2, "0")}`,
+    note: r.note,
+  }));
+  const { error } = await supabase.from("transactions").insert(rows);
+  if (error) throw error;
+  const { error: upErr } = await supabase
+    .from("recurring_transactions")
+    .update({ last_applied_month: start })
+    .in(
+      "id",
+      due.map((r) => r.id),
+    );
+  if (upErr) throw upErr;
+  return rows.length;
+}
+
+export function sum(list: Txn[]): number {
+  return list.reduce((acc, t) => acc + t.amount, 0);
+}
+
+export function inMonth(t: Txn, key: string): boolean {
+  return t.date.slice(0, 7) === key;
+}
