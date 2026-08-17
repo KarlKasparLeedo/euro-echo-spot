@@ -9,14 +9,13 @@ Korduvate tehingute kaart jaguneb kaheks kõrvuti veeruks (mobiilis üksteise al
 
 Lisamisvorm jääb üles alles, tüübi valik säilib.
 
-## 2. Iga rida on muudetav
+## 2. Korduvad read jäävad ilma muutmisnuputa
 
-- Igal real "Muuda" nupp (pliiats). Klikk avab rea kohapeal muudetavaks: summa, nimetus, kategooria (ainult kulul), kuupäev kuus. Salvesta / Loobu.
-- Aktiivsuse lüliti ja kustutamine jäävad alles.
+Read on lihtsad: nimetus, summa, päev, aktiivsuse lüliti ja kustutamine. Eraldi "Muuda" nuppu igale reale ei tule.
 
-## 3. Tehingute muutmine
+## 3. Sinu sisestatud tehinguid saab muuta
 
-Tehingute lehel saab iga sisestatud kulu või tulu avada ja muuta: summa, kuupäev, kategooria, nimetus, märkus. Sama vorm mida kasutatakse lisamisel, aga eeltäidetud; all "Kustuta".
+Tehingute lehel avaneb klikiga tehingu vaade, kus saab muuta summat, kuupäeva, kategooriat, nimetust ja märkust ning tehingu kustutada. Sama vorm mis lisamisel, aga eeltäidetud.
 
 ## 4. Muutuv palk (põhipalk + boonus)
 
