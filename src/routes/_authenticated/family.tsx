@@ -231,7 +231,7 @@ function FamilyPage() {
                             </div>
                             <Progress
                               value={Math.min(pct, 100)}
-                              className={`[&>div]:${MEMBER_FILL[oi % MEMBER_FILL.length]}`}
+                              className={MEMBER_PROGRESS[oi % MEMBER_PROGRESS.length]}
                             />
                             <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
                               {g.byMember.length === 0 && <span>panuseid pole veel kirjas</span>}
