@@ -37,3 +37,17 @@ Sama loogika tõttu ei saa liitumine kunagi õnnestuda, ükskõik kui õige kood
 - `src/lib/household.ts`: `joinHousehold` → `supabase.rpc("join_household_by_code", { _code })`, vea sõnumite tõlge eesti keelde.
 - `src/components/HouseholdCard.tsx` renderdatakse `src/routes/_authenticated/family.tsx` sees; eemaldatakse `settings.tsx`-ist ja pere-info kaart lehel asendatakse selle kaardiga.
 
+## Ülevaate leht
+
+- Eemaldada kaart "Kategooriad tulpadena" (`dashboard.tsx`, ~read 320–345 ning kasutuseta jäävad `BarChart`-impordid). Sektorite jaotus (sõõrdiagramm) ja muud kaardid jäävad alles.
+
+## Sisselogimine kiiremaks ja stabiilsemaks
+
+Praegu kontrollitakse igal navigeerimisel `beforeLoad`-is eraldi päringuga, kas onboarding on tehtud. See tähendab iga lehevahetuse juures kaks järjestikust võrgupäringut (kasutaja + profiil) enne kui midagi kuvatakse – sellest tulevad hangumised ja vilkumine.
+
+- Onboardingu kontroll teha ainult üks kord sessiooni kohta: tulemus hoitakse mälus ja seda ei küsita uuesti igal lehel.
+- Kasutaja päring `getUser()` asendada juba olemasoleva sessiooni kontrolliga, et esimene renderdus ei ootaks võrgu taga.
+- Ülevaate lehel laadida andmed paralleelselt ja näidata vahepeal skeleton-olekut, mitte tühja lehte.
+- Sisselogimise nupul selge laadimisolek, et topeltklõps ei tekitaks poolikut olekut.
+
+
