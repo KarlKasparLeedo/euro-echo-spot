@@ -15,11 +15,13 @@ import {
   BarChart,
   Bar,
 } from "recharts";
-import { ArrowDownRight, ArrowUpRight, Flame, TrendingUp } from "lucide-react";
+import { ArrowDownRight, ArrowUpRight, Flame, TrendingUp, Wallet, PiggyBank } from "lucide-react";
 import {
   fetchTransactions,
   fetchBudgets,
   fetchRecurring,
+  fetchSavingsMovements,
+  savingsBalance,
   applyRecurring,
   pendingVariableIncomes,
   monthKey,
@@ -57,6 +59,7 @@ function Dashboard() {
   const txQuery = useQuery({ queryKey: ["transactions"], queryFn: fetchTransactions });
   const budgetQuery = useQuery({ queryKey: ["budgets"], queryFn: fetchBudgets });
   const recQuery = useQuery({ queryKey: ["recurring"], queryFn: fetchRecurring });
+  const savingsQuery = useQuery({ queryKey: ["savings"], queryFn: fetchSavingsMovements });
 
   useEffect(() => {
     if (!recQuery.data) return;
@@ -87,6 +90,7 @@ function Dashboard() {
     }, {}),
   )
     .map(([name, value]) => ({ name, value }))
+    .filter((c) => c.value > 0)
     .sort((a, b) => b.value - a.value);
 
   const trend = Array.from({ length: 6 }, (_, i) => {
@@ -112,8 +116,11 @@ function Dashboard() {
       const spent = expenses.filter((t) => t.category === b.category).reduce((a, t) => a + t.amount, 0);
       return { ...b, spent, pct: b.monthly_limit > 0 ? (spent / b.monthly_limit) * 100 : 0 };
     })
+    .filter((b) => b.spent > 0)
     .sort((a, b) => b.pct - a.pct)
     .slice(0, 4);
+
+  const savings = savingsBalance(savingsQuery.data ?? []);
 
   return (
     <div className="space-y-6">
@@ -129,6 +136,33 @@ function Dashboard() {
       <MonthCloseCard />
 
 
+
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="flex items-center gap-2 text-base">
+            <Wallet className="h-4 w-4 text-primary" /> Kontode ülevaade
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="grid gap-3 sm:grid-cols-3">
+          <div className="rounded-lg border p-3">
+            <p className="text-xs text-muted-foreground">Kuu kulutuste konto</p>
+            <p className="mt-1 text-xl font-semibold">{formatEur(totalIncome - totalExpense)}</p>
+            <p className="text-xs text-muted-foreground">selle kuu vaba raha</p>
+          </div>
+          <Link to="/savings" className="rounded-lg border p-3 transition-colors hover:bg-muted">
+            <p className="flex items-center gap-1 text-xs text-muted-foreground">
+              <PiggyBank className="h-3.5 w-3.5" /> Kogumiskonto
+            </p>
+            <p className="mt-1 text-xl font-semibold">{formatEur(savings)}</p>
+            <p className="text-xs text-muted-foreground">halda kogumist</p>
+          </Link>
+          <div className="rounded-lg border p-3">
+            <p className="text-xs text-muted-foreground">Kokku</p>
+            <p className="mt-1 text-xl font-semibold">{formatEur(totalIncome - totalExpense + savings)}</p>
+            <p className="text-xs text-muted-foreground">mõlemad kontod</p>
+          </div>
+        </CardContent>
+      </Card>
 
       <Card className="border-primary/20 bg-secondary/40">
         <CardContent className="pt-6">
