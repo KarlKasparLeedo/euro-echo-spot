@@ -12,8 +12,6 @@ import {
   XAxis,
   YAxis,
   CartesianGrid,
-  BarChart,
-  Bar,
 } from "recharts";
 import { ArrowDownRight, ArrowUpRight, Flame, TrendingUp, Wallet, PiggyBank } from "lucide-react";
 import {
