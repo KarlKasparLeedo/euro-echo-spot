@@ -6,6 +6,7 @@ import { Plus, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { setOnboardingCompleted } from "@/lib/finance";
 import { CATEGORIES, formatEur } from "@/lib/categories";
+import { AllocationIndicator } from "@/components/AllocationIndicator";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -41,8 +42,12 @@ function OnboardingPage() {
   const [incomes, setIncomes] = useState<RecRow[]>([{ amount: "", merchant: "Palk", category: "", day: "1" }]);
   const [hasExpense, setHasExpense] = useState<boolean | null>(null);
   const [expenses, setExpenses] = useState<RecRow[]>([{ amount: "", merchant: "Üür", category: "Eluase", day: "1" }]);
+  const [budgets, setBudgets] = useState<Record<string, string>>({});
 
   const num = (v: string) => Number(v.replace(",", "."));
+
+  const monthlyIncome = (hasIncome ? incomes : []).reduce((a, r) => a + (num(r.amount) || 0), 0);
+  const budgetTotal = CATEGORIES.reduce((a, c) => a + (num(budgets[c] ?? "") || 0), 0);
 
   async function finish(skip = false) {
     setSaving(true);
@@ -79,6 +84,15 @@ function OnboardingPage() {
 
         if (recRows.length > 0) {
           const { error } = await supabase.from("recurring_transactions").insert(recRows);
+          if (error) throw error;
+        }
+        const budgetRows = CATEGORIES.map((c) => ({ category: c, monthly_limit: num(budgets[c] ?? "") || 0 })).filter(
+          (b) => b.monthly_limit > 0,
+        );
+        if (budgetRows.length > 0) {
+          const { error } = await supabase
+            .from("budgets")
+            .upsert(budgetRows, { onConflict: "user_id,category" });
           if (error) throw error;
         }
       }
@@ -180,7 +194,7 @@ function OnboardingPage() {
     <div className="mx-auto max-w-3xl space-y-5">
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">Seadistame eelarve ja rahasjad</h1>
-        <p className="text-sm text-muted-foreground">Samm {step}/3 · võtab paar minutit</p>
+        <p className="text-sm text-muted-foreground">Samm {step}/4 · võtab paar minutit</p>
       </div>
 
       {step === 1 && (
@@ -287,6 +301,31 @@ function OnboardingPage() {
         </Card>
       )}
 
+      {step === 4 && (
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base">Kui palju plaanid igas kategoorias kuus kulutada?</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <AllocationIndicator income={monthlyIncome} allocated={budgetTotal} />
+            <div className="grid gap-3 sm:grid-cols-2">
+              {CATEGORIES.map((c) => (
+                <div key={c} className="space-y-1.5">
+                  <Label htmlFor={`b-${c}`}>{c}</Label>
+                  <Input
+                    id={`b-${c}`}
+                    inputMode="decimal"
+                    placeholder="0"
+                    value={budgets[c] ?? ""}
+                    onChange={(e) => setBudgets({ ...budgets, [c]: e.target.value })}
+                  />
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       <div className="flex items-center justify-between">
         <Button variant="ghost" onClick={() => finish(true)} disabled={saving}>
           Jäta vahele
@@ -297,7 +336,7 @@ function OnboardingPage() {
               Tagasi
             </Button>
           )}
-          {step < 3 ? (
+          {step < 4 ? (
             <Button onClick={() => setStep(step + 1)}>Edasi</Button>
           ) : (
             <Button onClick={() => finish(false)} disabled={saving}>
