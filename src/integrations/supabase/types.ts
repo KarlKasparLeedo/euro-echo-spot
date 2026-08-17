@@ -135,6 +135,7 @@ export type Database = {
           created_at: string
           day_of_month: number
           id: string
+          is_variable: boolean
           last_applied_month: string | null
           merchant: string | null
           note: string | null
@@ -148,6 +149,7 @@ export type Database = {
           created_at?: string
           day_of_month?: number
           id?: string
+          is_variable?: boolean
           last_applied_month?: string | null
           merchant?: string | null
           note?: string | null
@@ -161,6 +163,7 @@ export type Database = {
           created_at?: string
           day_of_month?: number
           id?: string
+          is_variable?: boolean
           last_applied_month?: string | null
           merchant?: string | null
           note?: string | null
