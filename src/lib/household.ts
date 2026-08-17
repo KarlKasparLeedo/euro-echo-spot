@@ -18,7 +18,7 @@ export type SharedBudgetRow = {
   category: string;
   limit: number;
   spent: number;
-  byMember: { user_id: string; name: string; amount: number }[];
+  byMember: { user_id: string; name: string; amount: number; limit: number }[];
 };
 
 export type SharedGoalRow = {
@@ -163,8 +163,11 @@ export async function fetchFamilyOverview(key = monthKey(new Date())): Promise<F
         user_id: m.user_id,
         name: m.name,
         amount: rows.filter((t) => t.user_id === m.user_id).reduce((a, t) => a + t.amount, 0),
+        limit: (budgetRows ?? [])
+          .filter((b) => b.category === category && b.user_id === m.user_id)
+          .reduce((a, b) => a + Number(b.monthly_limit), 0),
       }))
-      .filter((m) => m.amount > 0);
+      .filter((m) => m.amount > 0 || m.limit > 0);
     return {
       category,
       limit,

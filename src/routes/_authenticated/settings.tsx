@@ -129,17 +129,6 @@ function SettingsPage() {
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader className="pb-2">
-          <CardTitle className="text-base">Pere</CardTitle>
-        </CardHeader>
-        <CardContent className="flex flex-wrap items-center justify-between gap-3 text-sm text-muted-foreground">
-          <span>Pere loomine, kutsekoodiga liitumine ja liikmed on nüüd „Pere“ lehel.</span>
-          <Button variant="outline" onClick={() => navigate({ to: "/family" })}>
-            Ava Pere
-          </Button>
-        </CardContent>
-      </Card>
 
 
 
