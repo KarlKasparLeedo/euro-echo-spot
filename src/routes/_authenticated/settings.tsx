@@ -4,7 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Trash2, Plus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { fetchRecurring, type Recurring } from "@/lib/finance";
+import { fetchRecurring, type Recurring, setOnboardingCompleted } from "@/lib/finance";
 import { CATEGORIES, formatEur } from "@/lib/categories";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -108,9 +108,20 @@ function SettingsPage() {
             <p className="text-sm text-muted-foreground">E-post</p>
             <p className="font-medium">{email}</p>
           </div>
-          <Button variant="outline" onClick={signOut}>
-            Logi välja
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              onClick={async () => {
+                await setOnboardingCompleted(false);
+                navigate({ to: "/onboarding" });
+              }}
+            >
+              Seadista uuesti
+            </Button>
+            <Button variant="outline" onClick={signOut}>
+              Logi välja
+            </Button>
+          </div>
         </CardContent>
       </Card>
 
