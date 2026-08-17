@@ -146,7 +146,12 @@ function GoalsPage() {
             <Card key={g.id}>
               <CardHeader className="pb-2">
                 <CardTitle className="flex items-center justify-between text-base">
-                  {g.name}
+                  <span className="flex items-center gap-2">
+                    {g.name}
+                    {saved >= g.target_amount && (
+                      <Badge className="bg-success text-success-foreground">Täidetud</Badge>
+                    )}
+                  </span>
                   <Button variant="ghost" size="icon" aria-label="Kustuta" onClick={() => remove.mutate(g.id)}>
                     <Trash2 className="h-4 w-4 text-muted-foreground" />
                   </Button>
