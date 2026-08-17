@@ -23,3 +23,21 @@ Kuu lõpus (või igal hetkel) näed, kui palju sel kuul üle jäi: kuu tulud mii
 - Suunatud summade jälgimiseks lisandub tabel `goal_allocations` (eesmärgi id, summa, kuu, kasutaja) koos RLS-i ja õigustega; sellest arvutatakse "veel suunamata ülejääk".
 - `goals.saved_amount` uuendatakse suunamisel sama toiminguga.
 - Eesmärkide lehele uus komponent ülejäägi kaardi jaoks; töölauale ainult link/vihje.
+
+## Esmakordne sisselogimine (seadistusviisard)
+
+Kui kasutaja logib esimest korda sisse, suunatakse ta lühikesse seadistusse (kolm sammu, saab ka vahele jätta):
+
+1. **Eesmärgid** — lisa vähemalt üks säästueesmärk (nimi, sihtsumma, valikuline tähtaeg). Saab lisada mitu.
+2. **Kas sul on igakuiseid ette teada sissetulekuid?** — jah/ei. Kui jah, lisad read: summa, nimetus (nt palk), kuupäev kuus.
+3. **Kas sul on igakuiseid ette teada kulusid?** — jah/ei. Kui jah, lisad read: summa, kategooria, nimetus (nt üür), kuupäev kuus.
+
+Sisestatud igakuised read salvestatakse korduvate tehingutena, nii et need tekivad edaspidi automaatselt ja ilmuvad kohe töölaual. Pärast viisardit maandub kasutaja töölaual.
+
+Seadetes on nupp viisardi uuesti läbimiseks; korduvaid ridu saab alati seal muuta.
+
+## Tehniline osa (viisard)
+
+- Uus tabel `profiles` (või olemasolevale lisatav väli) märkega `onboarding_completed`, RLS-iga kasutaja külge.
+- Uus route `/_authenticated/onboarding`; kaitstud paigutus suunab sinna, kui märge puudub.
+- Igakuised read kirjutatakse `recurring_transactions` tabelisse olemasoleva loogikaga.
