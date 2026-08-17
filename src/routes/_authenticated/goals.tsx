@@ -2,13 +2,15 @@ import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Trash2, Plus, Undo2 } from "lucide-react";
+import { Trash2, Plus, Undo2, PiggyBank } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import {
   fetchGoals,
   fetchTransactions,
   fetchSavingsMovements,
   goalSavedFromMovements,
+  freeBuffer,
+  monthSurplus,
   releaseFromGoal,
   type Goal,
 } from "@/lib/finance";
@@ -20,6 +22,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
+import { GoalFundDialog } from "@/components/GoalFundDialog";
 
 export const Route = createFileRoute("/_authenticated/goals")({
   head: () => ({
@@ -42,6 +45,9 @@ function GoalsPage() {
   const { data: txns } = useQuery({ queryKey: ["transactions"], queryFn: fetchTransactions });
   const { data: movements } = useQuery({ queryKey: ["savings"], queryFn: fetchSavingsMovements });
   const perGoal = goalSavedFromMovements(movements ?? []);
+  const buffer = freeBuffer(movements ?? []);
+  const monthFree = Math.max(monthSurplus(txns ?? []), 0);
+  const [fundGoalId, setFundGoalId] = useState<string | null>(null);
 
   const release = useMutation({
     mutationFn: ({ id, amount }: { id: string; amount: number }) =>
@@ -81,15 +87,6 @@ function GoalsPage() {
       setDeadline("");
       toast.success("Eesmärk lisatud");
     },
-    onError: (e: Error) => toast.error(e.message),
-  });
-
-  const update = useMutation({
-    mutationFn: async ({ id, saved }: { id: string; saved: number }) => {
-      const { error } = await supabase.from("goals").update({ saved_amount: saved }).eq("id", id);
-      if (error) throw error;
-    },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["goals"] }),
     onError: (e: Error) => toast.error(e.message),
   });
 
@@ -212,20 +209,10 @@ function GoalsPage() {
                     </Button>
                   </div>
                 )}
-                {!isLinked && inSavings === 0 && (
-                  <div className="flex items-end gap-2">
-                    <div className="flex-1 space-y-1.5">
-                      <Label htmlFor={`saved-${g.id}`}>Kogutud summa (€)</Label>
-                      <Input
-                        id={`saved-${g.id}`}
-                        inputMode="decimal"
-                        defaultValue={String(g.saved_amount)}
-                        onBlur={(e) =>
-                          update.mutate({ id: g.id, saved: Number(e.target.value.replace(",", ".")) || 0 })
-                        }
-                      />
-                    </div>
-                  </div>
+                {!isLinked && (
+                  <Button variant="outline" size="sm" onClick={() => setFundGoalId(g.id)}>
+                    <PiggyBank className="mr-1 h-4 w-4" /> Lisa raha
+                  </Button>
                 )}
                 <div className="flex items-center justify-between">
                   <Label htmlFor={`link-${g.id}`} className="text-sm font-normal">
@@ -252,6 +239,17 @@ function GoalsPage() {
           );
         })}
       </div>
+
+      {fundGoalId && (
+        <GoalFundDialog
+          open
+          onOpenChange={(o) => !o && setFundGoalId(null)}
+          goalId={fundGoalId}
+          goalName={(goals ?? []).find((g) => g.id === fundGoalId)?.name ?? "Eesmärk"}
+          freeBuffer={buffer}
+          monthFree={monthFree}
+        />
+      )}
     </div>
   );
 }
