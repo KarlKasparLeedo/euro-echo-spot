@@ -61,6 +61,7 @@ function Dashboard() {
   const budgetQuery = useQuery({ queryKey: ["budgets"], queryFn: fetchBudgets });
   const recQuery = useQuery({ queryKey: ["recurring"], queryFn: fetchRecurring });
   const savingsQuery = useQuery({ queryKey: ["savings"], queryFn: fetchSavingsMovements });
+  const goalsQuery = useQuery({ queryKey: ["goals"], queryFn: fetchGoals });
 
   useEffect(() => {
     if (!recQuery.data) return;
