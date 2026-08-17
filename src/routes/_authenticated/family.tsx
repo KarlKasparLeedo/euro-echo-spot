@@ -108,47 +108,65 @@ function FamilyPage() {
                 const members = b.byMember;
                 const totalLimit = members.reduce((a, m) => a + m.limit, 0);
                 const scale = Math.max(totalLimit, b.spent, 1);
+                const overflow = Math.max(b.spent - totalLimit, 0);
+                const left = Math.max(totalLimit - b.spent, 0);
+                const limitMark = totalLimit > 0 ? (totalLimit / scale) * 100 : 100;
                 return (
                   <div key={b.category} className="space-y-2">
-                    <div className="flex justify-between text-sm">
+                    <div className="flex flex-wrap justify-between gap-x-3 text-sm">
                       <span className="font-medium">{b.category}</span>
                       <span className="text-muted-foreground">
                         {formatEur(b.spent)} / {totalLimit > 0 ? formatEur(totalLimit) : "eelarveta"}
+                        {totalLimit > 0 && (
+                          <span className={overflow > 0 ? "ml-2 text-destructive" : "ml-2"}>
+                            {overflow > 0 ? `ületatud ${formatEur(overflow)}` : `jäänud ${formatEur(left)}`}
+                          </span>
+                        )}
                       </span>
                     </div>
-                    <div className="flex h-5 w-full overflow-hidden rounded-md border bg-muted">
-                      {members.map((m, i) => {
-                        const share = (Math.max(m.limit, m.amount) / scale) * 100;
-                        const fill =
-                          Math.max(m.limit, m.amount) > 0
-                            ? (m.amount / Math.max(m.limit, m.amount)) * 100
-                            : 0;
-                        return (
+
+                    <div className="relative h-5 w-full overflow-hidden rounded-md border bg-muted/60">
+                      <div className="flex h-full w-full">
+                        {members.map((m, i) => (
                           <div
                             key={m.user_id}
-                            className={`relative h-full border-r last:border-r-0 ${MEMBER_TRACK[i % MEMBER_TRACK.length]}`}
-                            style={{ width: `${share}%` }}
-                            title={`${m.name}: ${formatEur(m.amount)} / ${formatEur(m.limit)}`}
-                          >
-                            <div
-                              className={`h-full ${MEMBER_FILL[i % MEMBER_FILL.length]}`}
-                              style={{ width: `${Math.min(fill, 100)}%` }}
+                            className={`h-full ${MEMBER_FILL[i % MEMBER_FILL.length]}`}
+                            style={{ width: `${(Math.min(m.amount, Math.max(scale - 0, 0)) / scale) * 100}%` }}
+                            title={`${m.name}: ${formatEur(m.amount)}`}
+                          />
+                        ))}
+                        {overflow > 0 && (
+                          <div
+                            className="h-full bg-destructive/70"
+                            style={{ width: `${(overflow / scale) * 100}%` }}
+                            title={`Ületatud ${formatEur(overflow)}`}
+                          />
+                        )}
+                      </div>
+                      {totalLimit > 0 && limitMark < 100 && (
+                        <div
+                          className="absolute inset-y-0 w-0.5 bg-foreground/60"
+                          style={{ left: `${limitMark}%` }}
+                          title={`Eelarve ${formatEur(totalLimit)}`}
+                        />
+                      )}
+                    </div>
+
+                    <div className="grid gap-1 text-xs text-muted-foreground sm:grid-cols-2">
+                      {members.length === 0 && <span>selle kuu kulutusi pole</span>}
+                      {members.map((m, i) => {
+                        const pct = m.limit > 0 ? Math.round((m.amount / m.limit) * 100) : null;
+                        return (
+                          <span key={m.user_id} className="flex items-center gap-1.5">
+                            <span
+                              className={`inline-block h-2.5 w-2.5 shrink-0 rounded-sm ${MEMBER_FILL[i % MEMBER_FILL.length]}`}
                             />
-                          </div>
+                            <span className="text-foreground">{m.name}</span>
+                            {formatEur(m.amount)}
+                            {m.limit > 0 ? ` / ${formatEur(m.limit)} (${pct}%)` : " (eelarveta)"}
+                          </span>
                         );
                       })}
-                    </div>
-                    <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
-                      {members.length === 0 && <span>selle kuu kulutusi pole</span>}
-                      {members.map((m, i) => (
-                        <span key={m.user_id} className="flex items-center gap-1.5">
-                          <span
-                            className={`inline-block h-2.5 w-2.5 rounded-sm ${MEMBER_FILL[i % MEMBER_FILL.length]}`}
-                          />
-                          {m.name}: {formatEur(m.amount)}
-                          {m.limit > 0 ? ` / ${formatEur(m.limit)}` : " (eelarveta)"}
-                        </span>
-                      ))}
                     </div>
                   </div>
                 );
