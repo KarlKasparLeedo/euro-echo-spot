@@ -151,7 +151,8 @@ function GoalsPage() {
       <div className="grid gap-4 md:grid-cols-2">
         {(goals ?? []).map((g: Goal) => {
           const isLinked = linked[g.id] ?? false;
-          const saved = isLinked ? savingsTotal : g.saved_amount;
+          const inSavings = perGoal[g.id] ?? 0;
+          const saved = isLinked ? savingsTotal : inSavings > 0 ? inSavings : g.saved_amount;
           const pct = g.target_amount > 0 ? (saved / g.target_amount) * 100 : 0;
           return (
             <Card key={g.id}>
@@ -176,7 +177,22 @@ function GoalsPage() {
                   {g.deadline && <span>kuni {g.deadline}</span>}
                 </div>
                 <Progress value={Math.min(pct, 100)} className="[&>div]:bg-success" />
-                {!isLinked && (
+                {inSavings > 0 && (
+                  <div className="flex items-center justify-between rounded-lg border p-2 text-sm">
+                    <span className="text-muted-foreground">
+                      Kogumiskontol märgitud {formatEur(inSavings)}
+                    </span>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      disabled={release.isPending}
+                      onClick={() => release.mutate({ id: g.id, amount: inSavings })}
+                    >
+                      <Undo2 className="mr-1 h-4 w-4" /> Võta tagasi
+                    </Button>
+                  </div>
+                )}
+                {!isLinked && inSavings === 0 && (
                   <div className="flex items-end gap-2">
                     <div className="flex-1 space-y-1.5">
                       <Label htmlFor={`saved-${g.id}`}>Kogutud summa (€)</Label>
