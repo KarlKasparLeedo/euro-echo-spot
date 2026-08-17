@@ -35,5 +35,5 @@ Käitumine:
 - Migratsioon: `recurring_transactions` lisandub `is_variable boolean not null default false`. Kinnitamise jälgimiseks piisab olemasolevast `last_applied_month` väljast (seatakse kinnitamisel).
 - `applyRecurring` jätab `is_variable` read vahele; uus abifunktsioon `pendingVariableIncomes(recurring, today)` tagastab read, mille palgapäev on käes ja kuu kinnitamata.
 - Uus komponent `src/components/ConfirmIncomeCard.tsx` töölauale.
-- `settings.tsx` jaotatakse kaheks veeruks; uus komponent `RecurringRow` sisaldab vaate- ja muutmisrežiimi.
+- `settings.tsx` jaotatakse kaheks veeruks (sissetulekud / kulud); read jäävad vaaterežiimi.
 - Tehingu muutmiseks laiendatakse `AddTransactionDialog` komponenti valikulise `transaction` propiga (update + delete), kasutus tehingute lehel.
