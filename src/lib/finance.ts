@@ -196,3 +196,37 @@ export async function setOnboardingCompleted(value: boolean): Promise<void> {
     .upsert({ id: uid, onboarding_completed: value }, { onConflict: "id" });
   if (error) throw error;
 }
+
+export type SavingsMovement = {
+  id: string;
+  kind: "deposit" | "withdrawal" | "goal";
+  amount: number;
+  goal_id: string | null;
+  note: string | null;
+  date: string;
+};
+
+export async function fetchSavingsMovements(): Promise<SavingsMovement[]> {
+  const { data, error } = await supabase
+    .from("savings_movements")
+    .select("id, kind, amount, goal_id, note, date")
+    .order("date", { ascending: false })
+    .order("created_at", { ascending: false });
+  if (error) throw error;
+  return (data ?? []).map((m) => ({ ...m, amount: Number(m.amount) })) as SavingsMovement[];
+}
+
+/** Kogumiskonto jääk: sissemaksed miinus väljamaksed ja eesmärkidesse suunatud summad. */
+export function savingsBalance(movements: SavingsMovement[]): number {
+  return movements.reduce((acc, m) => acc + (m.kind === "deposit" ? m.amount : -m.amount), 0);
+}
+
+/** Teadaolev igakuine sissetulek korduvatest tehingutest. */
+export function plannedMonthlyIncome(recurring: Recurring[]): number {
+  return recurring.filter((r) => r.active && r.type === "income").reduce((a, r) => a + r.amount, 0);
+}
+
+/** Eelarvetesse juba määratud summa kokku. */
+export function budgetsTotal(budgets: Budget[]): number {
+  return budgets.reduce((a, b) => a + b.monthly_limit, 0);
+}
