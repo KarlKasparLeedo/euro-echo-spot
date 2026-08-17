@@ -170,9 +170,11 @@ export type Allocation = {
 };
 
 export async function fetchAllocations(): Promise<Allocation[]> {
+  const uid = await currentUserId();
   const { data, error } = await supabase
     .from("goal_allocations")
     .select("id, goal_id, amount, month")
+    .eq("user_id", uid)
     .order("created_at", { ascending: false });
   if (error) throw error;
   return (data ?? []).map((a) => ({ ...a, amount: Number(a.amount) })) as Allocation[];
