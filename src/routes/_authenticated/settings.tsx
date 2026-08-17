@@ -128,6 +128,9 @@ function SettingsPage() {
         </CardContent>
       </Card>
 
+      <HouseholdCard />
+
+
       <Card>
         <CardHeader className="pb-2">
           <CardTitle className="text-base">Korduvad tehingud</CardTitle>
