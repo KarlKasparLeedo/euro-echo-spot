@@ -67,37 +67,11 @@ function FamilyPage() {
         </Select>
       </div>
 
-      {!isLoading && !data?.household && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-base">
-              <Users className="h-4 w-4 text-primary" /> Sa ei kuulu veel peresse
-            </CardTitle>
-            <CardDescription>
-              Loo pere või liitu kutsekoodiga seadete lehel, siis saate jagatud eelarveid ja eesmärke
-              koos jälgida.
-            </CardDescription>
-          </CardHeader>
-        </Card>
-      )}
+      <HouseholdCard />
 
       {data?.household && (
         <>
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="flex items-center gap-2 text-base">
-                <Users className="h-4 w-4 text-primary" /> {data.household.name}
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="flex flex-wrap gap-2 text-sm text-muted-foreground">
-              {data.members.map((m) => (
-                <span key={m.user_id} className="rounded-full border px-3 py-1">
-                  {m.name}
-                  {m.isMe ? " (sina)" : ""}
-                </span>
-              ))}
-            </CardContent>
-          </Card>
+
 
           <Card>
             <CardHeader className="pb-2">
