@@ -45,6 +45,7 @@ function TransactionsPage() {
   const [to, setTo] = useState("");
   const [search, setSearch] = useState("");
   const [sort, setSort] = useState("date-desc");
+  const [editing, setEditing] = useState<Txn | null>(null);
 
   const del = useMutation({
     mutationFn: async (id: string) => {
