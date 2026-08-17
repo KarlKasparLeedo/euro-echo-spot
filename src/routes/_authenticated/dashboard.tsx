@@ -177,7 +177,8 @@ function Dashboard() {
               </Link>
             </div>
             {(goalsQuery.data ?? []).map((g) => {
-              const pct = g.target_amount > 0 ? (g.saved_amount / g.target_amount) * 100 : 0;
+              const saved = goalSaved[g.id] ?? g.saved_amount;
+              const pct = g.target_amount > 0 ? (saved / g.target_amount) * 100 : 0;
               return (
                 <div key={g.id} className="space-y-1.5">
                   <div className="flex justify-between text-sm">
@@ -190,7 +191,7 @@ function Dashboard() {
                       )}
                     </span>
                     <span className="text-muted-foreground">
-                      {formatEur(g.saved_amount)} / {formatEur(g.target_amount)}
+                      {formatEur(saved)} / {formatEur(g.target_amount)}
                     </span>
                   </div>
                   <Progress value={Math.min(pct, 100)} className="[&>div]:bg-success" />
