@@ -321,30 +321,6 @@ function Dashboard() {
         </Card>
       </div>
 
-      {byCategory.length > 0 && (
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base">Kategooriad tulpadena</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="h-64">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={byCategory} layout="vertical" margin={{ left: 20 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(210 15% 90%)" horizontal={false} />
-                  <XAxis type="number" fontSize={12} />
-                  <YAxis type="category" dataKey="name" width={130} fontSize={11} />
-                  <Tooltip formatter={(v: number) => formatEur(v)} />
-                  <Bar dataKey="value" radius={[0, 6, 6, 0]}>
-                    {byCategory.map((entry) => (
-                      <Cell key={entry.name} fill={CATEGORY_COLORS[entry.name] ?? "hsl(210 12% 55%)"} />
-                    ))}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </CardContent>
-        </Card>
-      )}
 
       {budgetRows.length > 0 && (
         <Card>
