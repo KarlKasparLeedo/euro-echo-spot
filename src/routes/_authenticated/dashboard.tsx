@@ -23,6 +23,8 @@ import {
   fetchRecurring,
   fetchSavingsMovements,
   savingsBalance,
+  freeBuffer,
+  goalSavedFromMovements,
   applyRecurring,
   pendingVariableIncomes,
   monthKey,
