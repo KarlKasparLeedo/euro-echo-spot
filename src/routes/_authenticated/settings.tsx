@@ -42,6 +42,7 @@ function SettingsPage() {
   const [merchant, setMerchant] = useState("");
   const [category, setCategory] = useState<string>("Eluase");
   const [day, setDay] = useState("1");
+  const [isVariable, setIsVariable] = useState(false);
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => setEmail(data.user?.email ?? ""));
@@ -57,6 +58,7 @@ function SettingsPage() {
         category: type === "expense" ? category : null,
         merchant: merchant.trim() || null,
         day_of_month: Math.min(Math.max(Number(day) || 1, 1), 28),
+        is_variable: type === "income" ? isVariable : false,
       });
       if (error) throw error;
     },
@@ -64,6 +66,7 @@ function SettingsPage() {
       qc.invalidateQueries({ queryKey: ["recurring"] });
       setAmount("");
       setMerchant("");
+      setIsVariable(false);
       toast.success("Korduv tehing lisatud");
     },
     onError: (e: Error) => toast.error(e.message),
