@@ -250,6 +250,11 @@ export function SavingsAccountCard() {
               placeholder={mode === "withdrawal" ? "Nt auto remont" : "Valikuline"}
             />
           </div>
+          {mode === "withdrawal" && (
+            <p className="text-xs text-muted-foreground sm:col-span-2">
+              Väljavõetud raha kirjendatakse kuu rahakotti sissetulekuna, kogumiskonto jääk väheneb sama summa võrra.
+            </p>
+          )}
           {mode === "withdrawal" && free < Number(amount.replace(",", ".") || 0) && (
             <p className="text-xs text-muted-foreground sm:col-span-2">
               Vaba puhver ei kata summat — puudujääk võetakse eesmärkide pealt (valitud eesmärk esimesena).
