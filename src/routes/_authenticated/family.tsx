@@ -7,6 +7,7 @@ import { availableMonths, fetchTransactions, monthKey, monthLabel } from "@/lib/
 import { formatEur } from "@/lib/categories";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
+import { HouseholdCard } from "@/components/HouseholdCard";
 import {
   Select,
   SelectContent,
