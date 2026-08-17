@@ -40,6 +40,19 @@ function GoalsPage() {
   const qc = useQueryClient();
   const { data: goals } = useQuery({ queryKey: ["goals"], queryFn: fetchGoals });
   const { data: txns } = useQuery({ queryKey: ["transactions"], queryFn: fetchTransactions });
+  const { data: movements } = useQuery({ queryKey: ["savings"], queryFn: fetchSavingsMovements });
+  const perGoal = goalSavedFromMovements(movements ?? []);
+
+  const release = useMutation({
+    mutationFn: ({ id, amount }: { id: string; amount: number }) =>
+      releaseFromGoal(id, amount, "Võetud eesmärgilt tagasi"),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["savings"] });
+      qc.invalidateQueries({ queryKey: ["goals"] });
+      toast.success("Raha on tagasi vabas puhvris");
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
   const [name, setName] = useState("");
   const [target, setTarget] = useState("");
   const [deadline, setDeadline] = useState("");
