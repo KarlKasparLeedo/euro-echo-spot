@@ -107,8 +107,9 @@ export async function fetchRecurring(): Promise<Recurring[]> {
 export async function applyRecurring(items: Recurring[]): Promise<number> {
   const now = new Date();
   const start = monthStart(now);
-  const due = items.filter((r) => r.active && r.last_applied_month !== start);
+  const due = items.filter((r) => r.active && !r.is_variable && r.last_applied_month !== start);
   if (due.length === 0) return 0;
+
 
   const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
   const rows = due.map((r) => ({
