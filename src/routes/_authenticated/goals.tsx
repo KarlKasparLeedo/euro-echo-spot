@@ -2,9 +2,16 @@ import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Trash2, Plus } from "lucide-react";
+import { Trash2, Plus, Undo2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { fetchGoals, fetchTransactions, type Goal } from "@/lib/finance";
+import {
+  fetchGoals,
+  fetchTransactions,
+  fetchSavingsMovements,
+  goalSavedFromMovements,
+  releaseFromGoal,
+  type Goal,
+} from "@/lib/finance";
 import { formatEur } from "@/lib/categories";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
