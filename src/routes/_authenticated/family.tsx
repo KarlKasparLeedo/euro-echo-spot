@@ -71,6 +71,22 @@ function FamilyPage() {
 
       {data?.household && (
         <>
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="flex items-center gap-2 text-base">
+                <Users className="h-4 w-4 text-primary" /> Liikmed
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="flex flex-wrap gap-2 text-sm text-muted-foreground">
+              {data.members.map((m) => (
+                <span key={m.user_id} className="rounded-full border px-3 py-1">
+                  {m.name}
+                  {m.isMe ? " (sina)" : ""}
+                </span>
+              ))}
+            </CardContent>
+          </Card>
+
 
 
           <Card>
