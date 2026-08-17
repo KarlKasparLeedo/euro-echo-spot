@@ -175,8 +175,9 @@ function GoalsPage() {
             <Card key={g.id}>
               <CardHeader className="pb-2">
                 <CardTitle className="flex items-center justify-between text-base">
-                  <span className="flex items-center gap-2">
+                  <span className="flex flex-wrap items-center gap-2">
                     {g.name}
+                    {g.shared && <Badge variant="outline">Peres jagatud</Badge>}
                     {saved >= g.target_amount && (
                       <Badge className="bg-success text-success-foreground">Täidetud</Badge>
                     )}

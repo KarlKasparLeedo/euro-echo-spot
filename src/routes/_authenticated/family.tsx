@@ -18,6 +18,12 @@ import {
 
 const MEMBER_FILL = ["bg-primary", "bg-success", "bg-warning", "bg-destructive"];
 const MEMBER_TRACK = ["bg-primary/15", "bg-success/15", "bg-warning/15", "bg-destructive/15"];
+const MEMBER_PROGRESS = [
+  "[&>div]:bg-primary",
+  "[&>div]:bg-success",
+  "[&>div]:bg-warning",
+  "[&>div]:bg-destructive",
+];
 
 export const Route = createFileRoute("/_authenticated/family")({
   head: () => ({
@@ -177,36 +183,71 @@ function FamilyPage() {
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-base">Jagatud eesmärgid</CardTitle>
+              <CardDescription>Iga eesmärgi juures on näha, kelle eesmärk see on.</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-6">
               {data.goals.length === 0 && (
                 <p className="text-sm text-muted-foreground">
                   Ühtegi eesmärki pole veel jagatuks märgitud.
                 </p>
               )}
-              {data.goals.map((g) => {
-                const pct = g.target > 0 ? (g.saved / g.target) * 100 : 0;
-                return (
-                  <div key={g.id} className="space-y-2">
-                    <div className="flex justify-between text-sm">
-                      <span className="font-medium">{g.name}</span>
-                      <span className="text-muted-foreground">
-                        {formatEur(g.saved)} / {formatEur(g.target)}
-                      </span>
-                    </div>
-                    <Progress value={Math.min(pct, 100)} className="[&>div]:bg-success" />
-                    <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
-                      {g.byMember.length === 0 && <span>panuseid pole veel kirjas</span>}
-                      {g.byMember.map((m) => (
-                        <span key={m.user_id}>
-                          {m.name}: {formatEur(m.amount)}
+              {data.members
+                .filter((m) => data.goals.some((g) => g.ownerId === m.user_id))
+                .map((owner, oi) => {
+                  const ownerGoals = data.goals.filter((g) => g.ownerId === owner.user_id);
+                  return (
+                    <div key={owner.user_id} className="space-y-4">
+                      <div className="flex items-center gap-2 text-sm font-medium">
+                        <span
+                          className={`inline-block h-2.5 w-2.5 rounded-sm ${MEMBER_FILL[oi % MEMBER_FILL.length]}`}
+                        />
+                        <span>{owner.name}</span>
+                        <span className="text-xs font-normal text-muted-foreground">
+                          {ownerGoals.length} eesmärki
                         </span>
-                      ))}
-                      {g.deadline && <span>tähtaeg {g.deadline}</span>}
+                      </div>
+                      {ownerGoals.map((g) => {
+                        const pct = g.target > 0 ? (g.saved / g.target) * 100 : 0;
+                        return (
+                          <div
+                            key={g.id}
+                            className={`space-y-2 rounded-lg border-l-4 py-1 pl-3 ${MEMBER_TRACK[oi % MEMBER_TRACK.length]}`}
+                          >
+                            <div className="flex flex-wrap justify-between gap-x-3 text-sm">
+                              <span className="flex items-center gap-2 font-medium">
+                                {g.name}
+                                <span className="rounded-full border px-2 py-0.5 text-xs font-normal text-muted-foreground">
+                                  {g.isMine ? "sinu eesmärk" : `${g.ownerName} eesmärk`}
+                                </span>
+                                {g.saved >= g.target && g.target > 0 && (
+                                  <span className="rounded-full bg-success px-2 py-0.5 text-xs text-success-foreground">
+                                    Täidetud
+                                  </span>
+                                )}
+                              </span>
+                              <span className="text-muted-foreground">
+                                {formatEur(g.saved)} / {formatEur(g.target)}
+                              </span>
+                            </div>
+                            <Progress
+                              value={Math.min(pct, 100)}
+                              className={MEMBER_PROGRESS[oi % MEMBER_PROGRESS.length]}
+                            />
+                            <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
+                              {g.byMember.length === 0 && <span>panuseid pole veel kirjas</span>}
+                              {g.byMember.map((m) => (
+                                <span key={m.user_id}>
+                                  panustas {m.name}: {formatEur(m.amount)}
+                                </span>
+                              ))}
+                              {g.deadline && <span>tähtaeg {g.deadline}</span>}
+                            </div>
+                          </div>
+                        );
+                      })}
                     </div>
-                  </div>
-                );
-              })}
+                  );
+                })}
             </CardContent>
           </Card>
         </>
