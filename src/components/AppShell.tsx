@@ -10,6 +10,7 @@ import {
   Plus,
   Wallet,
   BarChart3,
+  Users,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -25,6 +26,7 @@ const NAV = [
   { to: "/budgets", label: "Eelarved", icon: PiggyBank },
   { to: "/goals", label: "Eesmärgid", icon: Target },
   { to: "/savings", label: "Kogumine", icon: Wallet },
+  { to: "/family", label: "Pere", icon: Users },
   { to: "/reports", label: "Aruanded", icon: BarChart3 },
   { to: "/settings", label: "Seaded", icon: Settings },
 ] as const;
@@ -79,7 +81,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         </Button>
 
         <nav className="fixed bottom-0 left-0 right-0 z-30 border-t bg-card md:hidden">
-          <div className="grid grid-cols-7">
+          <div className="grid grid-cols-8">
             {NAV.map((item) => (
               <Link
                 key={item.to}

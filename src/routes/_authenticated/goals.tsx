@@ -84,6 +84,18 @@ function GoalsPage() {
     },
   });
 
+  const setShared = useMutation({
+    mutationFn: async ({ id, shared }: { id: string; shared: boolean }) => {
+      const { error } = await supabase.from("goals").update({ shared }).eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["goals"] });
+      qc.invalidateQueries({ queryKey: ["family"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
   return (
     <div className="space-y-5">
       <div>
@@ -187,6 +199,16 @@ function GoalsPage() {
                     id={`link-${g.id}`}
                     checked={isLinked}
                     onCheckedChange={(v) => setLinked((l) => ({ ...l, [g.id]: v }))}
+                  />
+                </div>
+                <div className="flex items-center justify-between">
+                  <Label htmlFor={`share-${g.id}`} className="text-sm font-normal">
+                    Jaga perega
+                  </Label>
+                  <Switch
+                    id={`share-${g.id}`}
+                    checked={g.shared}
+                    onCheckedChange={(v) => setShared.mutate({ id: g.id, shared: v })}
                   />
                 </div>
               </CardContent>

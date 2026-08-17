@@ -55,18 +55,24 @@ function BudgetsPage() {
       category,
       limit,
       rollover,
+      shared,
     }: {
       category: string;
       limit: number;
       rollover: boolean;
+      shared: boolean;
     }) => {
       const { error } = await supabase
         .from("budgets")
-        .upsert({ category, monthly_limit: limit, rollover }, { onConflict: "user_id,category" });
+        .upsert(
+          { category, monthly_limit: limit, rollover, shared },
+          { onConflict: "user_id,category" },
+        );
       if (error) throw error;
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["budgets"] });
+      qc.invalidateQueries({ queryKey: ["family"] });
       toast.success("Eelarve salvestatud");
     },
     onError: (e: Error) => toast.error(e.message),
@@ -104,6 +110,7 @@ function BudgetsPage() {
             .reduce((a, t) => a + t.amount, 0);
           const base = budget?.monthly_limit ?? 0;
           const rollover = budget?.rollover ?? false;
+          const shared = budget?.shared ?? false;
           const carry = rollover ? Math.max(base - prevSpent, 0) : 0;
           const limit = base + carry;
           const pct = limit > 0 ? (spent / limit) * 100 : 0;
@@ -153,6 +160,7 @@ function BudgetsPage() {
                         category,
                         limit: Number((draft || "0").replace(",", ".")),
                         rollover,
+                        shared,
                       })
                     }
                   >
@@ -171,6 +179,24 @@ function BudgetsPage() {
                         category,
                         limit: budget?.monthly_limit ?? Number((draft || "0").replace(",", ".")),
                         rollover: v,
+                        shared,
+                      })
+                    }
+                  />
+                </div>
+                <div className="flex items-center justify-between">
+                  <Label htmlFor={`share-${category}`} className="text-sm font-normal">
+                    Jaga perega
+                  </Label>
+                  <Switch
+                    id={`share-${category}`}
+                    checked={shared}
+                    onCheckedChange={(v) =>
+                      save.mutate({
+                        category,
+                        limit: budget?.monthly_limit ?? Number((draft || "0").replace(",", ".")),
+                        rollover,
+                        shared: v,
                       })
                     }
                   />

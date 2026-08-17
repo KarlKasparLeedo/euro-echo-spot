@@ -16,6 +16,7 @@ export type Budget = {
   category: string;
   monthly_limit: number;
   rollover: boolean;
+  shared: boolean;
 };
 
 export type Goal = {
@@ -24,6 +25,7 @@ export type Goal = {
   target_amount: number;
   saved_amount: number;
   deadline: string | null;
+  shared: boolean;
 };
 
 export type Recurring = {
@@ -68,10 +70,19 @@ export const MONTH_NAMES = [
   "detsember",
 ];
 
+/** Sisselogitud kasutaja id. */
+export async function currentUserId(): Promise<string> {
+  const { data } = await supabase.auth.getUser();
+  if (!data.user) throw new Error("Pole sisse logitud");
+  return data.user.id;
+}
+
 export async function fetchTransactions(): Promise<Txn[]> {
+  const uid = await currentUserId();
   const { data, error } = await supabase
     .from("transactions")
     .select("*")
+    .eq("user_id", uid)
     .order("date", { ascending: false })
     .order("created_at", { ascending: false });
   if (error) throw error;
@@ -79,13 +90,23 @@ export async function fetchTransactions(): Promise<Txn[]> {
 }
 
 export async function fetchBudgets(): Promise<Budget[]> {
-  const { data, error } = await supabase.from("budgets").select("*").order("category");
+  const uid = await currentUserId();
+  const { data, error } = await supabase
+    .from("budgets")
+    .select("*")
+    .eq("user_id", uid)
+    .order("category");
   if (error) throw error;
   return (data ?? []).map((b) => ({ ...b, monthly_limit: Number(b.monthly_limit) })) as Budget[];
 }
 
 export async function fetchGoals(): Promise<Goal[]> {
-  const { data, error } = await supabase.from("goals").select("*").order("created_at");
+  const uid = await currentUserId();
+  const { data, error } = await supabase
+    .from("goals")
+    .select("*")
+    .eq("user_id", uid)
+    .order("created_at");
   if (error) throw error;
   return (data ?? []).map((g) => ({
     ...g,
@@ -149,9 +170,11 @@ export type Allocation = {
 };
 
 export async function fetchAllocations(): Promise<Allocation[]> {
+  const uid = await currentUserId();
   const { data, error } = await supabase
     .from("goal_allocations")
     .select("id, goal_id, amount, month")
+    .eq("user_id", uid)
     .order("created_at", { ascending: false });
   if (error) throw error;
   return (data ?? []).map((a) => ({ ...a, amount: Number(a.amount) })) as Allocation[];

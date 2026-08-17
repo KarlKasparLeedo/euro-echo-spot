@@ -18,6 +18,7 @@ import {
 import { ArrowDownRight, ArrowUpRight, Flame, TrendingUp, Wallet, PiggyBank } from "lucide-react";
 import {
   fetchTransactions,
+  fetchGoals,
   fetchBudgets,
   fetchRecurring,
   fetchSavingsMovements,
@@ -60,6 +61,7 @@ function Dashboard() {
   const budgetQuery = useQuery({ queryKey: ["budgets"], queryFn: fetchBudgets });
   const recQuery = useQuery({ queryKey: ["recurring"], queryFn: fetchRecurring });
   const savingsQuery = useQuery({ queryKey: ["savings"], queryFn: fetchSavingsMovements });
+  const goalsQuery = useQuery({ queryKey: ["goals"], queryFn: fetchGoals });
 
   useEffect(() => {
     if (!recQuery.data) return;
@@ -162,6 +164,37 @@ function Dashboard() {
             <p className="text-xs text-muted-foreground">mõlemad kontod</p>
           </div>
         </CardContent>
+        {(goalsQuery.data ?? []).length > 0 && (
+          <CardContent className="space-y-3 border-t pt-4">
+            <div className="flex items-center justify-between">
+              <p className="text-sm font-medium">Eesmärgid</p>
+              <Link to="/goals" className="text-xs text-primary hover:underline">
+                Halda eesmärke
+              </Link>
+            </div>
+            {(goalsQuery.data ?? []).map((g) => {
+              const pct = g.target_amount > 0 ? (g.saved_amount / g.target_amount) * 100 : 0;
+              return (
+                <div key={g.id} className="space-y-1.5">
+                  <div className="flex justify-between text-sm">
+                    <span className="flex items-center gap-2">
+                      {g.name}
+                      {pct >= 100 && (
+                        <Badge variant="secondary" className="text-[10px]">
+                          Täidetud
+                        </Badge>
+                      )}
+                    </span>
+                    <span className="text-muted-foreground">
+                      {formatEur(g.saved_amount)} / {formatEur(g.target_amount)}
+                    </span>
+                  </div>
+                  <Progress value={Math.min(pct, 100)} className="[&>div]:bg-success" />
+                </div>
+              );
+            })}
+          </CardContent>
+        )}
       </Card>
 
       <Card className="border-primary/20 bg-secondary/40">

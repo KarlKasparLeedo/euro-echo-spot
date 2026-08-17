@@ -21,6 +21,7 @@ export type Database = {
           id: string
           monthly_limit: number
           rollover: boolean
+          shared: boolean
           user_id: string
         }
         Insert: {
@@ -29,6 +30,7 @@ export type Database = {
           id?: string
           monthly_limit?: number
           rollover?: boolean
+          shared?: boolean
           user_id?: string
         }
         Update: {
@@ -37,6 +39,7 @@ export type Database = {
           id?: string
           monthly_limit?: number
           rollover?: boolean
+          shared?: boolean
           user_id?: string
         }
         Relationships: []
@@ -83,6 +86,7 @@ export type Database = {
           id: string
           name: string
           saved_amount: number
+          shared: boolean
           target_amount: number
           user_id: string
         }
@@ -92,6 +96,7 @@ export type Database = {
           id?: string
           name: string
           saved_amount?: number
+          shared?: boolean
           target_amount: number
           user_id?: string
         }
@@ -101,8 +106,62 @@ export type Database = {
           id?: string
           name?: string
           saved_amount?: number
+          shared?: boolean
           target_amount?: number
           user_id?: string
+        }
+        Relationships: []
+      }
+      household_members: {
+        Row: {
+          created_at: string
+          household_id: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          household_id: string
+          id?: string
+          user_id?: string
+        }
+        Update: {
+          created_at?: string
+          household_id?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "household_members_household_id_fkey"
+            columns: ["household_id"]
+            isOneToOne: false
+            referencedRelation: "households"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      households: {
+        Row: {
+          created_at: string
+          created_by: string
+          id: string
+          invite_code: string
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string
+          id?: string
+          invite_code: string
+          name?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          id?: string
+          invite_code?: string
+          name?: string
         }
         Relationships: []
       }
@@ -133,18 +192,21 @@ export type Database = {
       profiles: {
         Row: {
           created_at: string
+          display_name: string | null
           id: string
           onboarding_completed: boolean
           updated_at: string
         }
         Insert: {
           created_at?: string
+          display_name?: string | null
           id: string
           onboarding_completed?: boolean
           updated_at?: string
         }
         Update: {
           created_at?: string
+          display_name?: string | null
           id?: string
           onboarding_completed?: boolean
           updated_at?: string
@@ -278,7 +340,8 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      current_household_id: { Args: never; Returns: string }
+      is_household_member: { Args: { _user_id: string }; Returns: boolean }
     }
     Enums: {
       txn_type: "expense" | "income"
