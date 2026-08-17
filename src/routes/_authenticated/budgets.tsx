@@ -160,6 +160,7 @@ function BudgetsPage() {
                         category,
                         limit: Number((draft || "0").replace(",", ".")),
                         rollover,
+                        shared,
                       })
                     }
                   >
@@ -178,6 +179,24 @@ function BudgetsPage() {
                         category,
                         limit: budget?.monthly_limit ?? Number((draft || "0").replace(",", ".")),
                         rollover: v,
+                        shared,
+                      })
+                    }
+                  />
+                </div>
+                <div className="flex items-center justify-between">
+                  <Label htmlFor={`share-${category}`} className="text-sm font-normal">
+                    Jaga perega
+                  </Label>
+                  <Switch
+                    id={`share-${category}`}
+                    checked={shared}
+                    onCheckedChange={(v) =>
+                      save.mutate({
+                        category,
+                        limit: budget?.monthly_limit ?? Number((draft || "0").replace(",", ".")),
+                        rollover,
+                        shared: v,
                       })
                     }
                   />
