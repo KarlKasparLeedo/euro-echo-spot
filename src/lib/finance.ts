@@ -138,3 +138,61 @@ export function sum(list: Txn[]): number {
 export function inMonth(t: Txn, key: string): boolean {
   return t.date.slice(0, 7) === key;
 }
+
+export type Allocation = {
+  id: string;
+  goal_id: string;
+  amount: number;
+  month: string;
+};
+
+export async function fetchAllocations(): Promise<Allocation[]> {
+  const { data, error } = await supabase
+    .from("goal_allocations")
+    .select("id, goal_id, amount, month")
+    .order("created_at", { ascending: false });
+  if (error) throw error;
+  return (data ?? []).map((a) => ({ ...a, amount: Number(a.amount) })) as Allocation[];
+}
+
+/** Jooksva kuu tulud miinus kulud. */
+export function monthSurplus(txns: Txn[], key = monthKey(new Date())): number {
+  const list = txns.filter((t) => inMonth(t, key));
+  return sum(list.filter((t) => t.type === "income")) - sum(list.filter((t) => t.type === "expense"));
+}
+
+/** Ülejääk, millest on juba suunatud summad maha arvestatud. */
+export function availableSurplus(txns: Txn[], allocations: Allocation[], d = new Date()): number {
+  const start = monthStart(d);
+  const allocated = allocations
+    .filter((a) => a.month === start)
+    .reduce((acc, a) => acc + a.amount, 0);
+  return Math.max(monthSurplus(txns, monthKey(d)) - allocated, 0);
+}
+
+export async function fetchOnboardingCompleted(): Promise<boolean> {
+  const { data: userData } = await supabase.auth.getUser();
+  const uid = userData.user?.id;
+  if (!uid) return true;
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("onboarding_completed")
+    .eq("id", uid)
+    .maybeSingle();
+  if (error) throw error;
+  if (!data) {
+    await supabase.from("profiles").insert({ id: uid });
+    return false;
+  }
+  return data.onboarding_completed;
+}
+
+export async function setOnboardingCompleted(value: boolean): Promise<void> {
+  const { data: userData } = await supabase.auth.getUser();
+  const uid = userData.user?.id;
+  if (!uid) return;
+  const { error } = await supabase
+    .from("profiles")
+    .upsert({ id: uid, onboarding_completed: value }, { onConflict: "id" });
+  if (error) throw error;
+}
