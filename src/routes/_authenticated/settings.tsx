@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { fetchRecurring, type Recurring, setOnboardingCompleted } from "@/lib/finance";
 import { CATEGORIES, formatEur } from "@/lib/categories";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { HouseholdCard } from "@/components/HouseholdCard";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
