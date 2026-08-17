@@ -18,6 +18,12 @@ import {
 
 const MEMBER_FILL = ["bg-primary", "bg-success", "bg-warning", "bg-destructive"];
 const MEMBER_TRACK = ["bg-primary/15", "bg-success/15", "bg-warning/15", "bg-destructive/15"];
+const MEMBER_PROGRESS = [
+  "[&>div]:bg-primary",
+  "[&>div]:bg-success",
+  "[&>div]:bg-warning",
+  "[&>div]:bg-destructive",
+];
 
 export const Route = createFileRoute("/_authenticated/family")({
   head: () => ({
