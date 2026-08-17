@@ -36,6 +36,7 @@ export type Recurring = {
   note: string | null;
   active: boolean;
   last_applied_month: string | null;
+  is_variable: boolean;
 };
 
 export function monthKey(d: Date | string): string {
