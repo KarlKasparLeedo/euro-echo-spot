@@ -18,6 +18,7 @@ import {
 import { ArrowDownRight, ArrowUpRight, Flame, TrendingUp, Wallet, PiggyBank } from "lucide-react";
 import {
   fetchTransactions,
+  fetchGoals,
   fetchBudgets,
   fetchRecurring,
   fetchSavingsMovements,
