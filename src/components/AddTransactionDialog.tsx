@@ -3,6 +3,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { CATEGORIES, guessCategory } from "@/lib/categories";
+import type { Txn } from "@/lib/finance";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -25,11 +26,15 @@ function today() {
 export function AddTransactionDialog({
   open,
   onOpenChange,
+  transaction,
 }: {
   open: boolean;
   onOpenChange: (v: boolean) => void;
+  /** Kui antud, siis muudetakse olemasolevat tehingut. */
+  transaction?: Txn | null;
 }) {
   const qc = useQueryClient();
+  const editing = !!transaction;
   const [type, setType] = useState<"expense" | "income">("expense");
   const [amount, setAmount] = useState("");
   const [merchant, setMerchant] = useState("");
@@ -39,12 +44,29 @@ export function AddTransactionDialog({
   const [note, setNote] = useState("");
 
   useEffect(() => {
+    if (!open) return;
+    if (transaction) {
+      setType(transaction.type);
+      setAmount(String(transaction.amount));
+      setMerchant(transaction.merchant ?? "");
+      setCategory(transaction.category ?? "Muu/liigitamata");
+      setTouchedCategory(true);
+      setDate(transaction.date);
+      setNote(transaction.note ?? "");
+    } else {
+      reset();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, transaction?.id]);
+
+  useEffect(() => {
     if (touchedCategory) return;
     const guess = guessCategory(merchant);
     if (guess) setCategory(guess);
   }, [merchant, touchedCategory]);
 
   function reset() {
+    setType("expense");
     setAmount("");
     setMerchant("");
     setCategory("Muu/liigitamata");
@@ -57,20 +79,43 @@ export function AddTransactionDialog({
     mutationFn: async () => {
       const value = Number(amount.replace(",", "."));
       if (!Number.isFinite(value) || value <= 0) throw new Error("Sisesta korrektne summa");
-      const { error } = await supabase.from("transactions").insert({
+      const payload = {
         type,
         amount: value,
         category: type === "expense" ? category : null,
         merchant: merchant.trim() || null,
         date,
         note: note.trim() || null,
-      });
+      };
+      if (transaction) {
+        const { error } = await supabase
+          .from("transactions")
+          .update(payload)
+          .eq("id", transaction.id);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase.from("transactions").insert(payload);
+        if (error) throw error;
+      }
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["transactions"] });
+      toast.success(editing ? "Tehing salvestatud" : type === "expense" ? "Kulu lisatud" : "Sissetulek lisatud");
+      reset();
+      onOpenChange(false);
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const remove = useMutation({
+    mutationFn: async () => {
+      if (!transaction) return;
+      const { error } = await supabase.from("transactions").delete().eq("id", transaction.id);
       if (error) throw error;
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["transactions"] });
-      toast.success(type === "expense" ? "Kulu lisatud" : "Sissetulek lisatud");
-      reset();
+      toast.success("Tehing kustutatud");
       onOpenChange(false);
     },
     onError: (e: Error) => toast.error(e.message),
@@ -80,7 +125,7 @@ export function AddTransactionDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Uus tehing</DialogTitle>
+          <DialogTitle>{editing ? "Muuda tehingut" : "Uus tehing"}</DialogTitle>
         </DialogHeader>
         <Tabs value={type} onValueChange={(v) => setType(v as "expense" | "income")}>
           <TabsList className="grid w-full grid-cols-2">
@@ -144,6 +189,18 @@ export function AddTransactionDialog({
             </>
           )}
 
+          {type === "income" && (
+            <div className="space-y-2">
+              <Label htmlFor="merchant-income">Nimetus</Label>
+              <Input
+                id="merchant-income"
+                placeholder="nt Palk"
+                value={merchant}
+                onChange={(e) => setMerchant(e.target.value)}
+              />
+            </div>
+          )}
+
           <div className="space-y-2">
             <Label htmlFor="date">Kuupäev</Label>
             <Input id="date" type="date" value={date} onChange={(e) => setDate(e.target.value)} />
@@ -157,6 +214,17 @@ export function AddTransactionDialog({
           <Button type="submit" className="w-full" disabled={mutation.isPending}>
             {mutation.isPending ? "Salvestan..." : "Salvesta"}
           </Button>
+          {editing && (
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full"
+              disabled={remove.isPending}
+              onClick={() => remove.mutate()}
+            >
+              Kustuta tehing
+            </Button>
+          )}
         </form>
       </DialogContent>
     </Dialog>
