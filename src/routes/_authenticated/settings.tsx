@@ -114,6 +114,29 @@ function SettingsPage() {
     },
   });
 
+  const txQuery = useQuery({ queryKey: ["transactions"], queryFn: fetchTransactions });
+  const savQuery = useQuery({ queryKey: ["savings_movements"], queryFn: fetchSavingsMovements });
+  const currentWallet = walletBalance(txQuery.data ?? []);
+  const currentSavings = savingsBalance(savQuery.data ?? []);
+  const currentFree = freeBuffer(savQuery.data ?? []);
+  const [walletInput, setWalletInput] = useState("");
+  const [savingsInput, setSavingsInput] = useState("");
+
+  const saveBalances = useMutation({
+    mutationFn: () =>
+      setAccountBalances({
+        wallet: walletInput.trim() === "" ? undefined : Number(walletInput.replace(",", ".")),
+        savings: savingsInput.trim() === "" ? undefined : Number(savingsInput.replace(",", ".")),
+      }),
+    onSuccess: () => {
+      qc.invalidateQueries();
+      setWalletInput("");
+      setSavingsInput("");
+      toast.success("Kontode seisud on uuendatud");
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
   const reset = useMutation({
     mutationFn: resetAllAccounts,
     onSuccess: () => {
