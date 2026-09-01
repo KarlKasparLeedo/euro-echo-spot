@@ -503,3 +503,29 @@ export function monthReport(txns: Txn[], key: string): MonthReport {
     .sort((a, b) => b.value - a.value);
   return { key, income, expense, surplus: income - expense, byCategory, txns: list };
 }
+
+/** Nullib kõik kontojäägid: kustutab tehingud, kogumiskonto liikumised,
+ *  eesmärkide panused ja kuu lõpetamised ning nullib eesmärkide kogutud summad.
+ *  Eelarved, eesmärgid ise ja korduvad tehingud jäävad alles. */
+export async function resetAllAccounts(): Promise<void> {
+  const { data: auth } = await supabase.auth.getUser();
+  const uid = auth.user?.id;
+  if (!uid) throw new Error("Pole sisse logitud");
+
+  for (const table of ["goal_allocations", "savings_movements", "month_closures", "transactions"] as const) {
+    const { error } = await supabase.from(table).delete().eq("user_id", uid);
+    if (error) throw error;
+  }
+
+  const { error: goalErr } = await supabase
+    .from("goals")
+    .update({ saved_amount: 0 })
+    .eq("user_id", uid);
+  if (goalErr) throw goalErr;
+
+  const { error: recErr } = await supabase
+    .from("recurring_transactions")
+    .update({ last_applied_month: null })
+    .eq("user_id", uid);
+  if (recErr) throw recErr;
+}
