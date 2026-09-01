@@ -183,6 +183,60 @@ function SettingsPage() {
           </div>
         </CardContent>
       </Card>
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-base">Kontode seisud</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div className="rounded-lg border p-3">
+              <p className="text-xs text-muted-foreground">Kuu kulutuste konto praegu</p>
+              <p className="mt-1 text-xl font-semibold">{formatEur(currentWallet)}</p>
+            </div>
+            <div className="rounded-lg border p-3">
+              <p className="text-xs text-muted-foreground">Kogumiskonto praegu</p>
+              <p className="mt-1 text-xl font-semibold">{formatEur(currentSavings)}</p>
+              <p className="text-xs text-muted-foreground">sellest vaba {formatEur(currentFree)}</p>
+            </div>
+          </div>
+          <form
+            className="grid gap-3 sm:grid-cols-2"
+            onSubmit={(e) => {
+              e.preventDefault();
+              saveBalances.mutate();
+            }}
+          >
+            <div className="space-y-1.5">
+              <Label>Kuu kulutuste konto seis (€)</Label>
+              <Input
+                inputMode="decimal"
+                placeholder={String(currentWallet)}
+                value={walletInput}
+                onChange={(e) => setWalletInput(e.target.value)}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label>Kogumiskonto seis (€)</Label>
+              <Input
+                inputMode="decimal"
+                placeholder={String(currentSavings)}
+                value={savingsInput}
+                onChange={(e) => setSavingsInput(e.target.value)}
+              />
+            </div>
+            <div className="sm:col-span-2 flex items-center justify-between gap-3">
+              <p className="text-xs text-muted-foreground">
+                Jäta väli tühjaks, kui seda kontot ei soovi muuta. Vahe kaetakse korrigeeriva kirjega
+                („Konto algsaldo“).
+              </p>
+              <Button type="submit" disabled={saveBalances.isPending} className="shrink-0">
+                Salvesta seisud
+              </Button>
+            </div>
+          </form>
+        </CardContent>
+      </Card>
+
 
       <Card className="border-destructive/40">
         <CardHeader className="pb-2">
