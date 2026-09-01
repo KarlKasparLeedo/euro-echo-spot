@@ -4,7 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Trash2, Plus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { fetchRecurring, type Recurring, setOnboardingCompleted } from "@/lib/finance";
+import { fetchRecurring, type Recurring, setOnboardingCompleted, resetAllAccounts } from "@/lib/finance";
 import { CATEGORIES, formatEur } from "@/lib/categories";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
@@ -19,6 +19,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 export const Route = createFileRoute("/_authenticated/settings")({
   head: () => ({
@@ -92,6 +103,15 @@ function SettingsPage() {
     },
   });
 
+  const reset = useMutation({
+    mutationFn: resetAllAccounts,
+    onSuccess: () => {
+      qc.invalidateQueries();
+      toast.success("Kontod on nullitud");
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
   async function signOut() {
     await qc.cancelQueries();
     qc.clear();
@@ -128,6 +148,41 @@ function SettingsPage() {
           </div>
         </CardContent>
       </Card>
+
+      <Card className="border-destructive/40">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-base text-destructive">Kontode nullimine</CardTitle>
+        </CardHeader>
+        <CardContent className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-sm text-muted-foreground">
+            Nullib kuu rahakoti ja kogumiskonto jäägid: kustutab kõik tehingud, kogumiskonto liikumised,
+            eesmärkide panused ja kuu lõpetamised ning viib eesmärkide kogutud summad nulli. Eelarved,
+            eesmärgid ja korduvad tehingud jäävad alles.
+          </p>
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button variant="destructive" disabled={reset.isPending} className="shrink-0">
+                Nulli kõik kontod
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Kas nullida kõik kontod?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Kõik tehingud ja kontokanded kustutatakse jäädavalt ning jäägid muutuvad nulliks. Seda ei
+                  saa tagasi võtta.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Loobu</AlertDialogCancel>
+                <AlertDialogAction onClick={() => reset.mutate()}>Nulli kontod</AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        </CardContent>
+      </Card>
+
+
 
 
 
