@@ -103,6 +103,15 @@ function SettingsPage() {
     },
   });
 
+  const reset = useMutation({
+    mutationFn: resetAllAccounts,
+    onSuccess: () => {
+      qc.invalidateQueries();
+      toast.success("Kontod on nullitud");
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
   async function signOut() {
     await qc.cancelQueries();
     qc.clear();
