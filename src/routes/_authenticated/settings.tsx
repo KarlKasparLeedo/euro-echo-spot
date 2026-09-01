@@ -4,7 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Trash2, Plus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { fetchRecurring, type Recurring, setOnboardingCompleted } from "@/lib/finance";
+import { fetchRecurring, type Recurring, setOnboardingCompleted, resetAllAccounts } from "@/lib/finance";
 import { CATEGORIES, formatEur } from "@/lib/categories";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
