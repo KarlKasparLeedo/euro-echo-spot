@@ -523,9 +523,57 @@ export async function resetAllAccounts(): Promise<void> {
     .eq("user_id", uid);
   if (goalErr) throw goalErr;
 
+  // Märgime korduvad tehingud jooksva kuu osas tehtuks, et need kohe uuesti
+  // sisse ei loeks ja kuu konto jääks tõesti nulli.
   const { error: recErr } = await supabase
     .from("recurring_transactions")
-    .update({ last_applied_month: null })
+    .update({ last_applied_month: monthStart(new Date()) })
     .eq("user_id", uid);
   if (recErr) throw recErr;
+}
+
+/** Kuu kulutuste konto jääk (jooksva kuu tulud miinus kulud). */
+export function walletBalance(txns: Txn[], key = monthKey(new Date())): number {
+  return monthSurplus(txns, key);
+}
+
+/**
+ * Seab kontode jäägid täpselt soovitud tasemele, lisades vahe katteks
+ * korrigeeriva kirje (kuu kontole tehing, kogumiskontole liikumine).
+ */
+export async function setAccountBalances(target: {
+  wallet?: number;
+  savings?: number;
+}): Promise<void> {
+  const today = new Date().toISOString().slice(0, 10);
+
+  if (typeof target.wallet === "number" && Number.isFinite(target.wallet)) {
+    const txns = await fetchTransactions();
+    const diff = Math.round((target.wallet - walletBalance(txns)) * 100) / 100;
+    if (diff !== 0) {
+      const { error } = await supabase.from("transactions").insert({
+        type: diff > 0 ? "income" : "expense",
+        amount: Math.abs(diff),
+        category: "Muu/liigitamata",
+        merchant: "Konto algsaldo",
+        date: today,
+        note: "Konto seisu korrigeerimine",
+      });
+      if (error) throw error;
+    }
+  }
+
+  if (typeof target.savings === "number" && Number.isFinite(target.savings)) {
+    const movements = await fetchSavingsMovements();
+    const diff = Math.round((target.savings - savingsBalance(movements)) * 100) / 100;
+    if (diff !== 0) {
+      const { error } = await supabase.from("savings_movements").insert({
+        kind: diff > 0 ? "deposit" : "withdrawal",
+        amount: Math.abs(diff),
+        date: today,
+        note: "Konto seisu korrigeerimine",
+      });
+      if (error) throw error;
+    }
+  }
 }

@@ -4,7 +4,18 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Trash2, Plus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { fetchRecurring, type Recurring, setOnboardingCompleted, resetAllAccounts } from "@/lib/finance";
+import {
+  fetchRecurring,
+  type Recurring,
+  setOnboardingCompleted,
+  resetAllAccounts,
+  fetchTransactions,
+  fetchSavingsMovements,
+  walletBalance,
+  savingsBalance,
+  freeBuffer,
+  setAccountBalances,
+} from "@/lib/finance";
 import { CATEGORIES, formatEur } from "@/lib/categories";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
@@ -103,6 +114,30 @@ function SettingsPage() {
     },
   });
 
+  const txQuery = useQuery({ queryKey: ["transactions"], queryFn: fetchTransactions });
+  const savQuery = useQuery({ queryKey: ["savings_movements"], queryFn: fetchSavingsMovements });
+  const currentWallet = walletBalance(txQuery.data ?? []);
+  const currentSavings = savingsBalance(savQuery.data ?? []);
+  const currentFree = freeBuffer(savQuery.data ?? []);
+  const [walletInput, setWalletInput] = useState("");
+  const [savingsInput, setSavingsInput] = useState("");
+
+  const saveBalances = useMutation({
+    mutationFn: () => {
+      const target: { wallet?: number; savings?: number } = {};
+      if (walletInput.trim() !== "") target.wallet = Number(walletInput.replace(",", "."));
+      if (savingsInput.trim() !== "") target.savings = Number(savingsInput.replace(",", "."));
+      return setAccountBalances(target);
+    },
+    onSuccess: () => {
+      qc.invalidateQueries();
+      setWalletInput("");
+      setSavingsInput("");
+      toast.success("Kontode seisud on uuendatud");
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
   const reset = useMutation({
     mutationFn: resetAllAccounts,
     onSuccess: () => {
@@ -148,6 +183,60 @@ function SettingsPage() {
           </div>
         </CardContent>
       </Card>
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-base">Kontode seisud</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div className="rounded-lg border p-3">
+              <p className="text-xs text-muted-foreground">Kuu kulutuste konto praegu</p>
+              <p className="mt-1 text-xl font-semibold">{formatEur(currentWallet)}</p>
+            </div>
+            <div className="rounded-lg border p-3">
+              <p className="text-xs text-muted-foreground">Kogumiskonto praegu</p>
+              <p className="mt-1 text-xl font-semibold">{formatEur(currentSavings)}</p>
+              <p className="text-xs text-muted-foreground">sellest vaba {formatEur(currentFree)}</p>
+            </div>
+          </div>
+          <form
+            className="grid gap-3 sm:grid-cols-2"
+            onSubmit={(e) => {
+              e.preventDefault();
+              saveBalances.mutate();
+            }}
+          >
+            <div className="space-y-1.5">
+              <Label>Kuu kulutuste konto seis (€)</Label>
+              <Input
+                inputMode="decimal"
+                placeholder={String(currentWallet)}
+                value={walletInput}
+                onChange={(e) => setWalletInput(e.target.value)}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label>Kogumiskonto seis (€)</Label>
+              <Input
+                inputMode="decimal"
+                placeholder={String(currentSavings)}
+                value={savingsInput}
+                onChange={(e) => setSavingsInput(e.target.value)}
+              />
+            </div>
+            <div className="sm:col-span-2 flex items-center justify-between gap-3">
+              <p className="text-xs text-muted-foreground">
+                Jäta väli tühjaks, kui seda kontot ei soovi muuta. Vahe kaetakse korrigeeriva kirjega
+                („Konto algsaldo“).
+              </p>
+              <Button type="submit" disabled={saveBalances.isPending} className="shrink-0">
+                Salvesta seisud
+              </Button>
+            </div>
+          </form>
+        </CardContent>
+      </Card>
+
 
       <Card className="border-destructive/40">
         <CardHeader className="pb-2">
