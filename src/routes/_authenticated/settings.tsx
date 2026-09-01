@@ -123,11 +123,12 @@ function SettingsPage() {
   const [savingsInput, setSavingsInput] = useState("");
 
   const saveBalances = useMutation({
-    mutationFn: () =>
-      setAccountBalances({
-        wallet: walletInput.trim() === "" ? undefined : Number(walletInput.replace(",", ".")),
-        savings: savingsInput.trim() === "" ? undefined : Number(savingsInput.replace(",", ".")),
-      }),
+    mutationFn: () => {
+      const target: { wallet?: number; savings?: number } = {};
+      if (walletInput.trim() !== "") target.wallet = Number(walletInput.replace(",", "."));
+      if (savingsInput.trim() !== "") target.savings = Number(savingsInput.replace(",", "."));
+      return setAccountBalances(target);
+    },
     onSuccess: () => {
       qc.invalidateQueries();
       setWalletInput("");
