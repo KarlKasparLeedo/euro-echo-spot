@@ -149,6 +149,41 @@ function SettingsPage() {
         </CardContent>
       </Card>
 
+      <Card className="border-destructive/40">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-base text-destructive">Kontode nullimine</CardTitle>
+        </CardHeader>
+        <CardContent className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-sm text-muted-foreground">
+            Nullib kuu rahakoti ja kogumiskonto jäägid: kustutab kõik tehingud, kogumiskonto liikumised,
+            eesmärkide panused ja kuu lõpetamised ning viib eesmärkide kogutud summad nulli. Eelarved,
+            eesmärgid ja korduvad tehingud jäävad alles.
+          </p>
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button variant="destructive" disabled={reset.isPending} className="shrink-0">
+                Nulli kõik kontod
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Kas nullida kõik kontod?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Kõik tehingud ja kontokanded kustutatakse jäädavalt ning jäägid muutuvad nulliks. Seda ei
+                  saa tagasi võtta.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Loobu</AlertDialogCancel>
+                <AlertDialogAction onClick={() => reset.mutate()}>Nulli kontod</AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        </CardContent>
+      </Card>
+
+
+
 
 
 
